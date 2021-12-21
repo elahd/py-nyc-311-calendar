@@ -1,0 +1,11 @@
+{
+    "python.formatting.provider": "black",
+    "python.defaultInterpreterPath": "/workspaces/py-nyc-311-calendar/.venv/bin/python",
+    "python.autoComplete.extraPaths": [
+        "/workspaces/py-nyc-311-calendar/.venv/lib/python3.8/site-packages"
+    ],
+    "editor.formatOnSave": true,
+    "python.analysis.extraPaths": [
+        "/workspaces/py-nyc-311-calendar/.venv/lib/python3.8/site-packages"
+    ]
+}
