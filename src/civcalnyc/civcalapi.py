@@ -152,7 +152,7 @@ class CivCalAPI:
                         item.get("exceptionName")
                     )
                 except Exception as error:
-                    raise UnexpectedEntry from error
+                    raise self.UnexpectedEntry from error
 
                 day_dict[event_type_id] = {
                     "status_id": status_id,
@@ -186,7 +186,7 @@ class CivCalAPI:
             if previous_date is None:
                 previous_date = key
             elif key < previous_date:
-                raise DateOrderException("resp_dict not sorted by date.")
+                raise self.DateOrderException("resp_dict not sorted by date.")
 
             for svc, svc_details in value.items():
                 if (
@@ -221,26 +221,22 @@ class CivCalAPI:
 
         except aiohttp.ClientResponseError as error:
             if error.status in range(400, 500):
-                raise InvalidAuth from error
+                raise self.InvalidAuth from error
             else:
-                raise CannotConnect from error
+                raise self.CannotConnect from error
         except Exception as error:
-            raise CannotConnect from error
+            raise self.CannotConnect from error
 
         return json
 
+    class UnexpectedEntry(Exception):
+        """Thrown when API returns unexpected "key"."""
 
-class UnexpectedEntry(Exception):
-    """Thrown when API returns unexpected "key"."""
+    class DateOrderException(Exception):
+        """Thrown when iterable that is expected to be sorted by date is not."""
 
+    class CannotConnect(Exception):
+        """Thrown when server is unreachable."""
 
-class DateOrderException(Exception):
-    """Thrown when iterable that is expected to be sorted by date is not."""
-
-
-class CannotConnect(Exception):
-    """Thrown when server is unreachable."""
-
-
-class InvalidAuth(Exception):
-    """Thrown when login fails."""
+    class InvalidAuth(Exception):
+        """Thrown when login fails."""
