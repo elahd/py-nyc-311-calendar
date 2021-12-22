@@ -1,19 +1,35 @@
 import logging
 from datetime import date, datetime
+from typing import Union
 from enum import Enum
 import aiohttp
+from .util import date_mod, scrubber
 
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.setLevel(logging.DEBUG)
 
 
+class UnexpectedEntry(Exception):
+    pass
+
+
+class DateOrderException(Exception):
+    pass
+
+
 class CivCalAPI:
     """API representation."""
+
+    class CalendarTypes(Enum):
+        """Calendar types to be returned by CivCalAPI"""
+
+        BY_DATE = 1
+        DAYS_AHEAD = 2
+        NEXT_EXCEPTIONS = 3
 
     class Status(Enum):
         """Calendar item status codes."""
 
-        UNKNOWN = 0  # Not used
         IN_EFFECT = 1
         ON_SCHEDULE = 2
         OPEN = 3
@@ -22,10 +38,9 @@ class CivCalAPI:
         SUSPENDED = 6
         CLOSED = 7
 
-    class EventType(Enum):
+    class ServiceType(Enum):
         """Types of events reported via API"""
 
-        UNKNOWN = 0  # Not used
         PARK = 1
         SCHOOL = 2
         TRASH = 3
@@ -67,10 +82,10 @@ class CivCalAPI:
         },
         "CLOSED": {"name": "Closed", "is_exception": True, "id": Status.CLOSED},
     }
-    KNOWN_EVENT_TYPES = {
-        "Alternate Side Parking": {"name": "On Street Parking", "id": EventType.PARK},
-        "Collections": {"name": "Garbage and Recycling", "id": EventType.TRASH},
-        "Schools": {"name": "Schools", "id": EventType.SCHOOL},
+    KNOWN_SERVICE_TYPES = {
+        "Alternate Side Parking": {"name": "On Street Parking", "id": ServiceType.PARK},
+        "Collections": {"name": "Garbage and Recycling", "id": ServiceType.TRASH},
+        "Schools": {"name": "Schools", "id": ServiceType.SCHOOL},
     }
 
     def __init__(
@@ -82,7 +97,39 @@ class CivCalAPI:
         self._api_key = api_key
         self._request_headers = {"Ocp-Apim-Subscription-Key": api_key}
 
-    async def get_calendar(self, start_date: date, end_date: date):
+        self.status_id_to_name = {}
+        for key, value in self.KNOWN_STATUSES.items():
+            self.status_id_to_name[value["id"]] = key
+
+    async def get_calendar(
+        self,
+        calendars=(
+            CalendarTypes.BY_DATE,
+            CalendarTypes.DAYS_AHEAD,
+            CalendarTypes.NEXT_EXCEPTIONS,
+        ),
+        scrub: bool = False,
+    ):
+        """Main function to retrieve calendars from this library."""
+        resp_dict = {}
+
+        start_date = date_mod(-1)
+        end_date = date_mod(90, start_date)
+        api_resp = await self.__async_calendar_update(start_date, end_date, scrub)
+
+        for calendar in calendars:
+            if calendar is self.CalendarTypes.BY_DATE:
+                resp_dict[calendar] = api_resp
+            elif calendar is self.CalendarTypes.DAYS_AHEAD:
+                resp_dict[calendar] = self.__build_days_ahead(api_resp)
+            elif calendar is self.CalendarTypes.NEXT_EXCEPTIONS:
+                resp_dict[calendar] = self.__build_next_exceptions(api_resp)
+
+        return resp_dict
+
+    async def __async_calendar_update(
+        self, start_date: date, end_date: date, scrub: bool = False
+    ):
         """Get events for specified date range."""
 
         date_params = {
@@ -99,19 +146,71 @@ class CivCalAPI:
                 day["today_id"], self.API_RSP_DATE_FORMAT
             ).date()
 
+            day_dict = {}
             for item in day["items"]:
                 try:
-                    event_type_id = self.KNOWN_EVENT_TYPES[item["type"]]["id"]
+                    event_type_id = self.KNOWN_SERVICE_TYPES[item["type"]]["id"]
                     status_id = self.KNOWN_STATUSES[item["status"]]["id"]
                     description = item["details"]
+                    exception_name = (lambda x: scrubber(x) if scrub else x)(
+                        item.get("exceptionName")
+                    )
                 except Exception as error:
                     raise UnexpectedEntry from error
 
-                resp_dict[cur_date] = {
-                    event_type_id: {"status_id": status_id, "explanation": description}
+                day_dict[event_type_id] = {
+                    "status_id": status_id,
+                    "description": description,
+                    "exception_name": exception_name,
                 }
 
+            resp_dict[cur_date] = day_dict
+
         return resp_dict
+
+    def __build_days_ahead(self, resp_dict):
+        """Builds dict of statuses keyed by number of days from today."""
+        days_ahead = {}
+        for i in list(range(-1, 7)):
+            i_date = date_mod(i)
+            day = {"date": i_date}
+            for _, value in self.KNOWN_SERVICE_TYPES.items():
+                day[value["id"]] = resp_dict[i_date][value["id"]]
+            days_ahead[i] = day
+        return days_ahead
+
+    def __build_next_exceptions(self, resp_dict):
+        """Builds dict of next exception for all known types."""
+        next_exceptions = {}
+        previous_date = None
+        for key, value in resp_dict.items():
+            """
+            Assuming that array is already sorted by date. This is dangerous, but we're being lazy.
+            previous_date will verify, and we'll die abruptly if order is incorrect.
+            """
+
+            if previous_date is None:
+                previous_date = key
+            elif key < previous_date:
+                raise DateOrderException("resp_dict not sorted by date.")
+
+            for svc, svc_details in value.items():
+                if (
+                    next_exceptions.get(svc)
+                    or not self.KNOWN_STATUSES[
+                        self.status_id_to_name[svc_details["status_id"]]
+                    ]["is_exception"]
+                ):
+                    continue
+
+                next_exceptions[svc] = {
+                    "date": key,
+                    "description": svc_details["description"],
+                    "exception_name": svc_details["exception_name"],
+                    "status_id": svc_details["status_id"],
+                }
+
+        return next_exceptions
 
     async def __call_api(self, base_url: str, url_params: dict):
         async with self._session.get(
@@ -125,7 +224,3 @@ class CivCalAPI:
             json = await resp.json()
             _LOGGER.debug("got %s", json)
             return json
-
-
-class UnexpectedEntry(Exception):
-    pass
