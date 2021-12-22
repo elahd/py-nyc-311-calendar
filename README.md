@@ -1,4 +1,6 @@
-# <ins>CivCalNYC</ins> - Asynchronous closure/suspension data fetcher for NYC schools, trash collection, and parking regulations.
+# CivCalNYC
+
+## Asynchronous closure/suspension data fetcher for NYC schools, trash collection, and parking regulations
 
 Uses the [NYC 311 Public API](https://api-portal.nyc.gov/docs/services/nyc-311-public-api/operations/api-GetCalendar-get/console). Built to drive a Home Assistant add-in.
 
