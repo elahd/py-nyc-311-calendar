@@ -1,9 +1,9 @@
 """Utility functions"""
 
-import pytz
 from datetime import datetime, date, timedelta
 from typing import Union
 import re
+import pytz
 
 
 def today():

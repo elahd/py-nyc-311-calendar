@@ -1,20 +1,13 @@
+"""CivCalNYC API"""
+
 import logging
 from datetime import date, datetime
-from typing import Union
 from enum import Enum
 import aiohttp
 from .util import date_mod, scrubber
 
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.setLevel(logging.DEBUG)
-
-
-class UnexpectedEntry(Exception):
-    pass
-
-
-class DateOrderException(Exception):
-    pass
 
 
 class CivCalAPI:
@@ -83,7 +76,10 @@ class CivCalAPI:
         "CLOSED": {"name": "Closed", "is_exception": True, "id": Status.CLOSED},
     }
     KNOWN_SERVICE_TYPES = {
-        "Alternate Side Parking": {"name": "On Street Parking", "id": ServiceType.PARKING},
+        "Alternate Side Parking": {
+            "name": "On Street Parking",
+            "id": ServiceType.PARKING,
+        },
         "Collections": {"name": "Garbage and Recycling", "id": ServiceType.TRASH},
         "Schools": {"name": "Schools", "id": ServiceType.SCHOOL},
     }
@@ -184,10 +180,8 @@ class CivCalAPI:
         next_exceptions = {}
         previous_date = None
         for key, value in resp_dict.items():
-            """
-            Assuming that array is already sorted by date. This is dangerous, but we're being lazy.
-            previous_date will verify, and we'll die abruptly if order is incorrect.
-            """
+            # Assuming that array is already sorted by date. This is dangerous, but we're being
+            # lazy. Previous_date will help verify order. We'll die abruptly if order is incorrect.
 
             if previous_date is None:
                 previous_date = key
@@ -213,14 +207,40 @@ class CivCalAPI:
         return next_exceptions
 
     async def __call_api(self, base_url: str, url_params: dict):
-        async with self._session.get(
-            base_url,
-            params=url_params,
-            headers=self._request_headers,
-            raise_for_status=True,
-            timeout=60,
-            ssl=True,
-        ) as resp:
-            json = await resp.json()
-            _LOGGER.debug("got %s", json)
-            return json
+        try:
+            async with self._session.get(
+                base_url,
+                params=url_params,
+                headers=self._request_headers,
+                raise_for_status=True,
+                timeout=60,
+                ssl=True,
+            ) as resp:
+                json = await resp.json()
+                _LOGGER.debug("got %s", json)
+
+        except aiohttp.ClientResponseError as error:
+            if error.status in range(400, 500):
+                raise InvalidAuth from error
+            else:
+                raise CannotConnect from error
+        except Exception as error:
+            raise CannotConnect from error
+
+        return json
+
+
+class UnexpectedEntry(Exception):
+    """Thrown when API returns unexpected "key"."""
+
+
+class DateOrderException(Exception):
+    """Thrown when iterable that is expected to be sorted by date is not."""
+
+
+class CannotConnect(Exception):
+    """Thrown when server is unreachable."""
+
+
+class InvalidAuth(Exception):
+    """Thrown when login fails."""
