@@ -41,7 +41,7 @@ class CivCalAPI:
     class ServiceType(Enum):
         """Types of events reported via API"""
 
-        PARK = 1
+        PARKING = 1
         SCHOOL = 2
         TRASH = 3
 
@@ -83,7 +83,7 @@ class CivCalAPI:
         "CLOSED": {"name": "Closed", "is_exception": True, "id": Status.CLOSED},
     }
     KNOWN_SERVICE_TYPES = {
-        "Alternate Side Parking": {"name": "On Street Parking", "id": ServiceType.PARK},
+        "Alternate Side Parking": {"name": "On Street Parking", "id": ServiceType.PARKING},
         "Collections": {"name": "Garbage and Recycling", "id": ServiceType.TRASH},
         "Schools": {"name": "Schools", "id": ServiceType.SCHOOL},
     }

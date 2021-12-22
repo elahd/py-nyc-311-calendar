@@ -57,7 +57,7 @@ async with aiohttp.ClientSession() as session:
 
 ```python
 
-{<CalendarTypes.BY_DATE: 1>: {datetime.date(2021, 12, 21): {<ServiceType.PARK: 1>: {'status_id': <Status.IN_EFFECT: 1>,
+{<CalendarTypes.BY_DATE: 1>: {datetime.date(2021, 12, 21): {<ServiceType.PARKING: 1>: {'status_id': <Status.IN_EFFECT: 1>,
                                                                                     'description': 'Alternate side parking and meters are in effect. Follow the new rule for residential streets: If '
                                                                                                    'the ASP sign shows more than one day, only the last day is in effect for that side of the street.',
                                                                                     'exception_name': None},
@@ -66,7 +66,7 @@ async with aiohttp.ClientSession() as session:
                                                                                                     'neighborhoods are also on schedule.',
                                                                                      'exception_name': None},
                                                             <ServiceType.SCHOOL: 2>: {'status_id': <Status.OPEN: 3>, 'description': 'Public schools are open.', 'exception_name': None}},
-                              datetime.date(2021, 12, 22): {<ServiceType.PARK: 1>: {'status_id': <Status.IN_EFFECT: 1>,
+                              datetime.date(2021, 12, 22): {<ServiceType.PARKING: 1>: {'status_id': <Status.IN_EFFECT: 1>,
                                                                                     'description': 'Alternate side parking and meters are in effect. Follow the new rule for residential streets: If '
                                                                                                    'the ASP sign shows more than one day, only the last day is in effect for that side of the street.',
                                                                                     'exception_name': None},
@@ -95,7 +95,7 @@ async with aiohttp.ClientSession() as session:
 ```python
 
 {<CalendarTypes.DAYS_AHEAD: 2>: {-1: {'date': datetime.date(2021, 12, 21),
-                                      <ServiceType.PARK: 1>: {'status_id': <Status.IN_EFFECT: 1>,
+                                      <ServiceType.PARKING: 1>: {'status_id': <Status.IN_EFFECT: 1>,
                                                               'description': 'Alternate side parking and meters are in effect. Follow the new rule for residential streets: If the ASP sign shows more '
                                                                              'than one day, only the last day is in effect for that side of the street.',
                                                               'exception_name': None},
@@ -105,7 +105,7 @@ async with aiohttp.ClientSession() as session:
                                                                'exception_name': None},
                                       <ServiceType.SCHOOL: 2>: {'status_id': <Status.OPEN: 3>, 'description': 'Public schools are open.', 'exception_name': None}},
                                  0: {'date': datetime.date(2021, 12, 22),
-                                     <ServiceType.PARK: 1>: {'status_id': <Status.IN_EFFECT: 1>,
+                                     <ServiceType.PARKING: 1>: {'status_id': <Status.IN_EFFECT: 1>,
                                                              'description': 'Alternate side parking and meters are in effect. Follow the new rule for residential streets: If the ASP sign shows more '
                                                                             'than one day, only the last day is in effect for that side of the street.',
                                                              'exception_name': None},
@@ -115,7 +115,7 @@ async with aiohttp.ClientSession() as session:
                                                               'exception_name': None},
                                      <ServiceType.SCHOOL: 2>: {'status_id': <Status.OPEN: 3>, 'description': 'Public schools are open.', 'exception_name': None}},
                                  1: {'date': datetime.date(2021, 12, 23),
-                                     <ServiceType.PARK: 1>: {'status_id': <Status.IN_EFFECT: 1>,
+                                     <ServiceType.PARKING: 1>: {'status_id': <Status.IN_EFFECT: 1>,
                                                              'description': 'Alternate side parking and meters are in effect. Follow the new rule for residential streets: If the ASP sign shows more '
                                                                             'than one day, only the last day is in effect for that side of the street.',
                                                              'exception_name': None},
@@ -145,7 +145,7 @@ async with aiohttp.ClientSession() as session:
 
 ```python
 
-{<CalendarTypes.NEXT_EXCEPTIONS: 3>: {<ServiceType.PARK: 1>: {'date': datetime.date(2021, 12, 24),
+{<CalendarTypes.NEXT_EXCEPTIONS: 3>: {<ServiceType.PARKING: 1>: {'date': datetime.date(2021, 12, 24),
                                                               'description': 'Alternate side parking and meters are suspended for Christmas Day (Observed).',
                                                               'exception_name': 'Christmas Day',
                                                               'status_id': <Status.SUSPENDED: 6>},
@@ -196,7 +196,7 @@ asyncio.run(main())
 
 ```python
 
-{<CalendarTypes.NEXT_EXCEPTIONS: 3>: {<ServiceType.PARK: 1>: {'date': datetime.date(2021, 12, 24),
+{<CalendarTypes.NEXT_EXCEPTIONS: 3>: {<ServiceType.PARKING: 1>: {'date': datetime.date(2021, 12, 24),
                                                               'description': 'Alternate side parking and meters are suspended for Christmas Day (Observed).',
                                                               'exception_name': 'Christmas Day'},
                                       <ServiceType.SCHOOL: 2>: {'date': datetime.date(2021, 12, 24),
