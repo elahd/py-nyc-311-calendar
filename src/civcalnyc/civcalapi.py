@@ -76,7 +76,7 @@ class CivCalAPI:
     }
     KNOWN_SERVICES = {
         "Alternate Side Parking": {
-            "name": "On Street Parking",
+            "name": "Alternate Side Parking",
             "id": ServiceType.PARKING,
             "exception_name": "Rule Suspension",
         },
