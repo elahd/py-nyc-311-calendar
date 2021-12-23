@@ -74,7 +74,7 @@ class CivCalAPI:
         },
         "CLOSED": {"name": "Closed", "is_exception": True, "id": Status.CLOSED},
     }
-    KNOWN_SERVICE_TYPES = {
+    KNOWN_SERVICES = {
         "Alternate Side Parking": {
             "name": "On Street Parking",
             "id": ServiceType.PARKING,
@@ -95,6 +95,10 @@ class CivCalAPI:
         self.status_id_to_name = {}
         for key, value in self.KNOWN_STATUSES.items():
             self.status_id_to_name[value["id"]] = key
+
+        self.service_id_to_name = {}
+        for key, value in self.KNOWN_SERVICES.items():
+            self.service_id_to_name[value["id"]] = key
 
     async def get_calendar(
         self,
@@ -146,7 +150,7 @@ class CivCalAPI:
             day_dict = {}
             for item in day["items"]:
                 try:
-                    event_type_id = self.KNOWN_SERVICE_TYPES[item["type"]]["id"]
+                    event_type_id = self.KNOWN_SERVICES[item["type"]]["id"]
                     status_id = self.KNOWN_STATUSES[item["status"]]["id"]
                     description = item["details"]
                     exception_name = (lambda x: scrubber(x) if scrub else x)(
@@ -173,7 +177,7 @@ class CivCalAPI:
         for i in list(range(-1, 7)):
             i_date = date_mod(i)
             day = {"date": i_date}
-            for _, value in self.KNOWN_SERVICE_TYPES.items():
+            for _, value in self.KNOWN_SERVICES.items():
                 day[value["id"]] = resp_dict[i_date][value["id"]]
             days_ahead[i] = day
 
