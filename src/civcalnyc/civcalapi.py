@@ -168,7 +168,7 @@ class CivCalAPI:
                     service_id = self.KNOWN_SERVICES[item["type"]]["id"]
                     status_id = self.KNOWN_STATUSES[item["status"]]["id"]
                     description = item["details"]
-                    exception_name = (lambda x: scrubber(x) if scrub else x)(
+                    exception_reason = (lambda x: scrubber(x) if scrub else x)(
                         item.get("exceptionName")
                     )
                 except Exception as error:
@@ -179,7 +179,8 @@ class CivCalAPI:
                     "status_id": status_id,
                     "status_name": self.status_by_id[status_id]["name"],
                     "description": description,
-                    "exception_name": exception_name,
+                    "exception_reason": exception_reason,
+                    "exception_name": self.service_by_id[service_id]["exception_name"],
                 }
 
             resp_dict[cur_date] = day_dict
