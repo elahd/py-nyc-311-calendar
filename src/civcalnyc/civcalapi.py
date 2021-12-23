@@ -7,7 +7,6 @@ import aiohttp
 from .util import date_mod, scrubber
 
 _LOGGER = logging.getLogger(__name__)
-_LOGGER.setLevel(logging.DEBUG)
 
 
 class CivCalAPI:
@@ -121,6 +120,8 @@ class CivCalAPI:
             elif calendar is self.CalendarTypes.NEXT_EXCEPTIONS:
                 resp_dict[calendar] = self.__build_next_exceptions(api_resp)
 
+        _LOGGER.debug("Got calendar.")
+
         return resp_dict
 
     async def __async_calendar_update(
@@ -162,6 +163,8 @@ class CivCalAPI:
 
             resp_dict[cur_date] = day_dict
 
+        _LOGGER.debug("Updated calendar.")
+
         return resp_dict
 
     def __build_days_ahead(self, resp_dict):
@@ -173,6 +176,9 @@ class CivCalAPI:
             for _, value in self.KNOWN_SERVICE_TYPES.items():
                 day[value["id"]] = resp_dict[i_date][value["id"]]
             days_ahead[i] = day
+
+        _LOGGER.debug("Built days ahead.")
+
         return days_ahead
 
     def __build_next_exceptions(self, resp_dict):
@@ -204,6 +210,8 @@ class CivCalAPI:
                     "status_id": svc_details["status_id"],
                 }
 
+        _LOGGER.debug("Built next exceptions.")
+
         return next_exceptions
 
     async def __call_api(self, base_url: str, url_params: dict):
@@ -226,6 +234,8 @@ class CivCalAPI:
                 raise self.CannotConnect from error
         except Exception as error:
             raise self.CannotConnect from error
+
+        _LOGGER.debug("Called API.")
 
         return json
 
