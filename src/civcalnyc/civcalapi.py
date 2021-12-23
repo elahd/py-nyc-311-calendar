@@ -179,8 +179,11 @@ class CivCalAPI:
                     "status_id": status_id,
                     "status_name": self.status_by_id[status_id]["name"],
                     "description": description,
-                    "exception_reason": exception_reason,
+                    "exception_reason": ""
+                    if exception_reason is None
+                    else exception_reason,
                     "exception_name": self.service_by_id[service_id]["exception_name"],
+                    "is_exception": self.status_by_id[status_id]["is_exception"],
                 }
 
             resp_dict[cur_date] = day_dict
