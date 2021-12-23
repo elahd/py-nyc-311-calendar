@@ -116,9 +116,9 @@ class CivCalAPI:
             if calendar is self.CalendarTypes.BY_DATE:
                 resp_dict[calendar] = api_resp
             elif calendar is self.CalendarTypes.DAYS_AHEAD:
-                resp_dict[calendar] = self.__build_days_ahead(api_resp)
+                resp_dict[calendar] = await self.__build_days_ahead(api_resp)
             elif calendar is self.CalendarTypes.NEXT_EXCEPTIONS:
-                resp_dict[calendar] = self.__build_next_exceptions(api_resp)
+                resp_dict[calendar] = await self.__build_next_exceptions(api_resp)
 
         _LOGGER.debug("Got calendar.")
 
@@ -167,7 +167,7 @@ class CivCalAPI:
 
         return resp_dict
 
-    def __build_days_ahead(self, resp_dict):
+    async def __build_days_ahead(self, resp_dict):
         """Builds dict of statuses keyed by number of days from today."""
         days_ahead = {}
         for i in list(range(-1, 7)):
@@ -181,7 +181,7 @@ class CivCalAPI:
 
         return days_ahead
 
-    def __build_next_exceptions(self, resp_dict):
+    async def __build_next_exceptions(self, resp_dict):
         """Builds dict of next exception for all known types."""
         next_exceptions = {}
         previous_date = None
