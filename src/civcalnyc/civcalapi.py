@@ -86,7 +86,7 @@ class CivCalAPI:
             "exception_name": "Collection Change",
         },
         "Schools": {
-            "name": "Schools",
+            "name": "School",
             "id": ServiceType.SCHOOL,
             "exception_name": "Closure",
         },
