@@ -216,9 +216,7 @@ class CivCalAPI:
             for svc, svc_details in value.items():
                 if (
                     next_exceptions.get(svc)
-                    or not self.KNOWN_STATUSES[
-                        self.status_id_to_name[svc_details["status_id"]]
-                    ]["is_exception"]
+                    or not self.status_by_id[svc_details["status_id"]]["is_exception"]
                 ):
                     continue
 
