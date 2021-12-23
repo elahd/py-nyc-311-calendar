@@ -165,7 +165,7 @@ class CivCalAPI:
             day_dict = {}
             for item in day["items"]:
                 try:
-                    event_type_id = self.KNOWN_SERVICES[item["type"]]["id"]
+                    service_id = self.KNOWN_SERVICES[item["type"]]["id"]
                     status_id = self.KNOWN_STATUSES[item["status"]]["id"]
                     description = item["details"]
                     exception_name = (lambda x: scrubber(x) if scrub else x)(
@@ -174,8 +174,10 @@ class CivCalAPI:
                 except Exception as error:
                     raise self.UnexpectedEntry from error
 
-                day_dict[event_type_id] = {
+                day_dict[service_id] = {
+                    "service_name": self.service_by_id[service_id]["name"],
                     "status_id": status_id,
+                    "status_name": self.status_by_id[status_id]["name"],
                     "description": description,
                     "exception_name": exception_name,
                 }
@@ -220,12 +222,7 @@ class CivCalAPI:
                 ):
                     continue
 
-                next_exceptions[svc] = {
-                    "date": key,
-                    "description": svc_details["description"],
-                    "exception_name": svc_details["exception_name"],
-                    "status_id": svc_details["status_id"],
-                }
+                next_exceptions[svc] = {**svc_details, "date": key}
 
         _LOGGER.debug("Built next exceptions.")
 
