@@ -78,9 +78,18 @@ class CivCalAPI:
         "Alternate Side Parking": {
             "name": "On Street Parking",
             "id": ServiceType.PARKING,
+            "exception_name": "Rule Suspension",
         },
-        "Collections": {"name": "Garbage and Recycling", "id": ServiceType.TRASH},
-        "Schools": {"name": "Schools", "id": ServiceType.SCHOOL},
+        "Collections": {
+            "name": "Garbage and Recycling",
+            "id": ServiceType.TRASH,
+            "exception_name": "Collection Change",
+        },
+        "Schools": {
+            "name": "Schools",
+            "id": ServiceType.SCHOOL,
+            "exception_name": "Closure",
+        },
     }
 
     def __init__(
@@ -92,13 +101,19 @@ class CivCalAPI:
         self._api_key = api_key
         self._request_headers = {"Ocp-Apim-Subscription-Key": api_key}
 
-        self.status_id_to_name = {}
-        for key, value in self.KNOWN_STATUSES.items():
-            self.status_id_to_name[value["id"]] = key
+        self.status_by_id = {}
+        for _, value in self.KNOWN_STATUSES.items():
+            self.status_by_id[value["id"]] = {
+                "name": value["name"],
+                "is_exception": value["is_exception"],
+            }
 
-        self.service_id_to_name = {}
-        for key, value in self.KNOWN_SERVICES.items():
-            self.service_id_to_name[value["id"]] = key
+        self.service_by_id = {}
+        for _, value in self.KNOWN_SERVICES.items():
+            self.service_by_id[value["id"]] = {
+                "name": value["name"],
+                "exception_name": value["exception_name"],
+            }
 
     async def get_calendar(
         self,
