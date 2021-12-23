@@ -194,9 +194,9 @@ class CivCalAPI:
         days_ahead = {}
         for i in list(range(-1, 7)):
             i_date = date_mod(i)
-            day = {"date": i_date}
+            day = {"date": i_date, "services": {}}
             for _, value in self.KNOWN_SERVICES.items():
-                day[value["id"]] = resp_dict[i_date][value["id"]]
+                day["services"][value["id"]] = resp_dict[i_date][value["id"]]
             days_ahead[i] = day
 
         _LOGGER.debug("Built days ahead.")
