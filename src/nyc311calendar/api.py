@@ -9,11 +9,11 @@ from .util import date_mod, scrubber
 _LOGGER = logging.getLogger(__name__)
 
 
-class CivCalAPI:
+class NYC311API:
     """API representation."""
 
     class CalendarTypes(Enum):
-        """Calendar types to be returned by CivCalAPI"""
+        """Calendar types to be returned by NYC311API"""
 
         BY_DATE = 1
         DAYS_AHEAD = 2

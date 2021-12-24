@@ -1,8 +1,15 @@
-# CivCalNYC
+# nyc311calendar
 
-## Asynchronous closure/suspension data fetcher for NYC schools, trash collection, and parking regulations
+## Asynchronous data fetcher for NYC school closures, trash collection holidays, and alternate side parking suspensions.
 
 Uses the [NYC 311 Public API](https://api-portal.nyc.gov/docs/services/nyc-311-public-api/operations/api-GetCalendar-get/console). Built to drive a Home Assistant add-in.
+
+## Warning
+This is an alpha release. Expect breaking changes.
+
+I take no responsibility for parking tickets, overflowing trash cans, kids stranded at bus stops or missing exams, etc. 🤷🏼‍♂️
+
+Use at your own risk.
 
 ## Usage
 
@@ -19,10 +26,10 @@ An NYC API Portal developer account is required to use this library.
 ```python
 
 # Import library
-from civcalnyc.civcalapi import CivCalAPI
+from nyc311calendar.api import NYC311API
 
 # Instantiate class
-calendar = CivCalAPI(session, API_KEY)
+calendar = NYC311API(session, API_KEY)
 
 # Fetch calendar
 resp = await calendar.get_calendar()
@@ -50,33 +57,63 @@ The By Date calendar type returns all statuses for all services for 90 days star
 ```python
 
 async with aiohttp.ClientSession() as session:
-    calendar = CivCalAPI(session, API_KEY)
+    calendar = NYC311API(session, API_KEY)
     resp = await calendar.get_calendar(
-        calendars=[CivCalAPI.CalendarTypes.BY_DATE], scrub=True
+        calendars=[NYC311API.CalendarTypes.BY_DATE], scrub=True
     )
 
 ```
 
 ```python
 
-{<CalendarTypes.BY_DATE: 1>: {datetime.date(2021, 12, 21): {<ServiceType.PARKING: 1>: {'status_id': <Status.IN_EFFECT: 1>,
-                                                                                    'description': 'Alternate side parking and meters are in effect. Follow the new rule for residential streets: If '
-                                                                                                   'the ASP sign shows more than one day, only the last day is in effect for that side of the street.',
-                                                                                    'exception_name': None},
-                                                            <ServiceType.TRASH: 3>: {'status_id': <Status.ON_SCHEDULE: 2>,
-                                                                                     'description': 'Trash and recycling collections are on schedule. Compost collections in participating '
-                                                                                                    'neighborhoods are also on schedule.',
-                                                                                     'exception_name': None},
-                                                            <ServiceType.SCHOOL: 2>: {'status_id': <Status.OPEN: 3>, 'description': 'Public schools are open.', 'exception_name': None}},
-                              datetime.date(2021, 12, 22): {<ServiceType.PARKING: 1>: {'status_id': <Status.IN_EFFECT: 1>,
-                                                                                    'description': 'Alternate side parking and meters are in effect. Follow the new rule for residential streets: If '
-                                                                                                   'the ASP sign shows more than one day, only the last day is in effect for that side of the street.',
-                                                                                    'exception_name': None},
-                                                            <ServiceType.TRASH: 3>: {'status_id': <Status.ON_SCHEDULE: 2>,
-                                                                                     'description': 'Trash and recycling collections are on schedule. Compost collections in participating '
-                                                                                                    'neighborhoods are also on schedule.',
-                                                                                     'exception_name': None},
-                                                            <ServiceType.SCHOOL: 2>: {'status_id': <Status.OPEN: 3>, 'description': 'Public schools are open.', 'exception_name': None}}}}
+{<CalendarTypes.BY_DATE: 1>: datetime.date(2021, 12, 31): {<ServiceType.PARKING: 1>: {'service_name': 'Alternate Side Parking',
+                                                                                       'status_id': <Status.SUSPENDED: 6>,
+                                                                                       'status_name': 'Suspended',
+                                                                                       'description': "Alternate side parking and meters are suspended for New Year's Day (Observed).",
+                                                                                       'exception_reason': "New Year's Day",
+                                                                                       'exception_name': 'Rule Suspension',
+                                                                                       'is_exception': True,
+                                                                                       'routine_closure': False},
+                                                            <ServiceType.TRASH: 3>: {'service_name': 'Garbage and Recycling',
+                                                                                     'status_id': <Status.ON_SCHEDULE: 2>,
+                                                                                     'status_name': 'On Schedule',
+                                                                                     'description': 'Trash and recycling collections are on schedule. Compost collections in participating neighborhoods are also on schedule.',
+                                                                                     'exception_reason': '',
+                                                                                     'exception_name': 'Collection Change',
+                                                                                     'is_exception': False,
+                                                                                     'routine_closure': False},
+                                                            <ServiceType.SCHOOL: 2>: {'service_name': 'School',
+                                                                                      'status_id': <Status.CLOSED: 7>,
+                                                                                      'status_name': 'Closed',
+                                                                                      'description': 'Public schools are closed for Winter Recess. Students return Monday.',
+                                                                                      'exception_reason': 'Winter Recess Last Day',
+                                                                                      'exception_name': 'Closure',
+                                                                                      'is_exception': True,
+                                                                                      'routine_closure': False}},
+                              datetime.date(2022, 1, 1): {<ServiceType.PARKING: 1>: {'service_name': 'Alternate Side Parking',
+                                                                                     'status_id': <Status.SUSPENDED: 6>,
+                                                                                     'status_name': 'Suspended',
+                                                                                     'description': "Alternate side parking and meters are suspended for New Year's Day.",
+                                                                                     'exception_reason': "New Year's Day",
+                                                                                     'exception_name': 'Rule Suspension',
+                                                                                     'is_exception': True,
+                                                                                     'routine_closure': False},
+                                                          <ServiceType.TRASH: 3>: {'service_name': 'Garbage and Recycling',
+                                                                                   'status_id': <Status.SUSPENDED: 6>,
+                                                                                   'status_name': 'Suspended',
+                                                                                   'description': "Trash, recycling, and compost collections are suspended for New Year's Day.",
+                                                                                   'exception_reason': "New Year's Day",
+                                                                                   'exception_name': 'Collection Change',
+                                                                                   'is_exception': True,
+                                                                                   'routine_closure': False},
+                                                          <ServiceType.SCHOOL: 2>: {'service_name': 'School',
+                                                                                    'status_id': <Status.NOT_IN_SESSION: 5>,
+                                                                                    'status_name': 'Not In Effect',
+                                                                                    'description': 'Public schools are not in session.',
+                                                                                    'exception_reason': '',
+                                                                                    'exception_name': 'Closure',
+                                                                                    'is_exception': False,
+                                                                                    'routine_closure': True}}}}
 
 ```
 
@@ -87,45 +124,90 @@ The Days Ahead calendar type returns all statuses for all services for 8 days st
 ```python
 
 async with aiohttp.ClientSession() as session:
-    calendar = CivCalAPI(session, API_KEY)
+    calendar = NYC311API(session, API_KEY)
     resp = await calendar.get_calendar(
-        calendars=[CivCalAPI.CalendarTypes.DAYS_AHEAD], scrub=True
+        calendars=[NYC311API.CalendarTypes.DAYS_AHEAD], scrub=True
     )
 
 ```
 
 ```python
 
-{<CalendarTypes.DAYS_AHEAD: 2>: {-1: {'date': datetime.date(2021, 12, 21),
-                                      <ServiceType.PARKING: 1>: {'status_id': <Status.IN_EFFECT: 1>,
-                                                              'description': 'Alternate side parking and meters are in effect. Follow the new rule for residential streets: If the ASP sign shows more '
-                                                                             'than one day, only the last day is in effect for that side of the street.',
-                                                              'exception_name': None},
-                                      <ServiceType.TRASH: 3>: {'status_id': <Status.ON_SCHEDULE: 2>,
-                                                               'description': 'Trash and recycling collections are on schedule. Compost collections in participating neighborhoods are also on '
-                                                                              'schedule.',
-                                                               'exception_name': None},
-                                      <ServiceType.SCHOOL: 2>: {'status_id': <Status.OPEN: 3>, 'description': 'Public schools are open.', 'exception_name': None}},
-                                 0: {'date': datetime.date(2021, 12, 22),
-                                     <ServiceType.PARKING: 1>: {'status_id': <Status.IN_EFFECT: 1>,
-                                                             'description': 'Alternate side parking and meters are in effect. Follow the new rule for residential streets: If the ASP sign shows more '
-                                                                            'than one day, only the last day is in effect for that side of the street.',
-                                                             'exception_name': None},
-                                     <ServiceType.TRASH: 3>: {'status_id': <Status.ON_SCHEDULE: 2>,
-                                                              'description': 'Trash and recycling collections are on schedule. Compost collections in participating neighborhoods are also on '
-                                                                             'schedule.',
-                                                              'exception_name': None},
-                                     <ServiceType.SCHOOL: 2>: {'status_id': <Status.OPEN: 3>, 'description': 'Public schools are open.', 'exception_name': None}},
-                                 1: {'date': datetime.date(2021, 12, 23),
-                                     <ServiceType.PARKING: 1>: {'status_id': <Status.IN_EFFECT: 1>,
-                                                             'description': 'Alternate side parking and meters are in effect. Follow the new rule for residential streets: If the ASP sign shows more '
-                                                                            'than one day, only the last day is in effect for that side of the street.',
-                                                             'exception_name': None},
-                                     <ServiceType.TRASH: 3>: {'status_id': <Status.ON_SCHEDULE: 2>,
-                                                              'description': 'Trash and recycling collections are on schedule. Compost collections in participating neighborhoods are also on '
-                                                                             'schedule.',
-                                                              'exception_name': None},
-                                     <ServiceType.SCHOOL: 2>: {'status_id': <Status.OPEN: 3>, 'description': 'Public schools are open.', 'exception_name': None}}}}
+{<CalendarTypes.DAYS_AHEAD: 2>: {-1: {'date': datetime.date(2021, 12, 23),
+                                      'services': {<ServiceType.PARKING: 1>: {'service_name': 'Alternate Side Parking',
+                                                                              'status_id': <Status.IN_EFFECT: 1>,
+                                                                              'status_name': 'In Effect',
+                                                                              'description': 'Alternate side parking and meters are in effect. Follow the new rule for residential streets: If the ASP sign shows more than one day, only the last day is in effect for that side of the street.',
+                                                                              'exception_reason': '',
+                                                                              'exception_name': 'Rule Suspension',
+                                                                              'is_exception': False,
+                                                                              'routine_closure': False},
+                                                   <ServiceType.TRASH: 3>: {'service_name': 'Garbage and Recycling',
+                                                                            'status_id': <Status.ON_SCHEDULE: 2>,
+                                                                            'status_name': 'On Schedule',
+                                                                            'description': 'Trash and recycling collections are on schedule. Compost collections in participating neighborhoods are also on schedule.',
+                                                                            'exception_reason': '',
+                                                                            'exception_name': 'Collection Change',
+                                                                            'is_exception': False,
+                                                                            'routine_closure': False},
+                                                   <ServiceType.SCHOOL: 2>: {'service_name': 'School',
+                                                                             'status_id': <Status.OPEN: 3>,
+                                                                             'status_name': 'Open',
+                                                                             'description': 'Public schools are open.',
+                                                                             'exception_reason': '',
+                                                                             'exception_name': 'Closure',
+                                                                             'is_exception': False,
+                                                                             'routine_closure': False}}},
+                                 0: {'date': datetime.date(2021, 12, 24),
+                                     'services': {<ServiceType.PARKING: 1>: {'service_name': 'Alternate Side Parking',
+                                                                             'status_id': <Status.SUSPENDED: 6>,
+                                                                             'status_name': 'Suspended',
+                                                                             'description': 'Alternate side parking and meters are suspended for Christmas Day (Observed).',
+                                                                             'exception_reason': 'Christmas Day',
+                                                                             'exception_name': 'Rule Suspension',
+                                                                             'is_exception': True,
+                                                                             'routine_closure': False},
+                                                  <ServiceType.TRASH: 3>: {'service_name': 'Garbage and Recycling',
+                                                                           'status_id': <Status.ON_SCHEDULE: 2>,
+                                                                           'status_name': 'On Schedule',
+                                                                           'description': 'Trash and recycling collections are on schedule. Compost collections in participating neighborhoods are also on schedule.',
+                                                                           'exception_reason': '',
+                                                                           'exception_name': 'Collection Change',
+                                                                           'is_exception': False,
+                                                                           'routine_closure': False},
+                                                  <ServiceType.SCHOOL: 2>: {'service_name': 'School',
+                                                                            'status_id': <Status.CLOSED: 7>,
+                                                                            'status_name': 'Closed',
+                                                                            'description': 'Public schools are closed for Winter Recess through December 31.',
+                                                                            'exception_reason': 'Winter Recess',
+                                                                            'exception_name': 'Closure',
+                                                                            'is_exception': True,
+                                                                            'routine_closure': False}}},
+                                 1: {'date': datetime.date(2021, 12, 25),
+                                     'services': {<ServiceType.PARKING: 1>: {'service_name': 'Alternate Side Parking',
+                                                                             'status_id': <Status.SUSPENDED: 6>,
+                                                                             'status_name': 'Suspended',
+                                                                             'description': 'Alternate side parking and meters are suspended for Christmas.',
+                                                                             'exception_reason': 'Christmas',
+                                                                             'exception_name': 'Rule Suspension',
+                                                                             'is_exception': True,
+                                                                             'routine_closure': False},
+                                                  <ServiceType.TRASH: 3>: {'service_name': 'Garbage and Recycling',
+                                                                           'status_id': <Status.SUSPENDED: 6>,
+                                                                           'status_name': 'Suspended',
+                                                                           'description': 'Trash, recycling, and compost collections are suspended for Christmas.',
+                                                                           'exception_reason': 'Christmas',
+                                                                           'exception_name': 'Collection Change',
+                                                                           'is_exception': True,
+                                                                           'routine_closure': False},
+                                                  <ServiceType.SCHOOL: 2>: {'service_name': 'School',
+                                                                            'status_id': <Status.CLOSED: 7>,
+                                                                            'status_name': 'Closed',
+                                                                            'description': 'Public schools are closed for Winter Recess through December 31.',
+                                                                            'exception_reason': 'Winter Recess',
+                                                                            'exception_name': 'Closure',
+                                                                            'is_exception': True,
+                                                                            'routine_closure': False}}}}}
 
 ```
 
@@ -138,27 +220,42 @@ Note that exceptions include things like holidays, snow days, half days, and win
 ```python
 
 async with aiohttp.ClientSession() as session:
-    calendar = CivCalAPI(session, API_KEY)
+    calendar = NYC311API(session, API_KEY)
     resp = await calendar.get_calendar(
-        calendars=[CivCalAPI.CalendarTypes.NEXT_EXCEPTIONS], scrub=True
+        calendars=[NYC311API.CalendarTypes.NEXT_EXCEPTIONS], scrub=True
     )
 
 ```
 
 ```python
 
-{<CalendarTypes.NEXT_EXCEPTIONS: 3>: {<ServiceType.PARKING: 1>: {'date': datetime.date(2021, 12, 24),
-                                                              'description': 'Alternate side parking and meters are suspended for Christmas Day (Observed).',
-                                                              'exception_name': 'Christmas Day',
-                                                              'status_id': <Status.SUSPENDED: 6>},
-                                      <ServiceType.SCHOOL: 2>: {'date': datetime.date(2021, 12, 24),
+{<CalendarTypes.NEXT_EXCEPTIONS: 3>: {<ServiceType.PARKING: 1>: {'service_name': 'Alternate Side Parking',
+                                                                 'status_id': <Status.SUSPENDED: 6>,
+                                                                 'status_name': 'Suspended',
+                                                                 'description': 'Alternate side parking and meters are suspended for Christmas Day (Observed).',
+                                                                 'exception_reason': 'Christmas Day',
+                                                                 'exception_name': 'Rule Suspension',
+                                                                 'is_exception': True,
+                                                                 'routine_closure': False,
+                                                                 'date': datetime.date(2021, 12, 24)},
+                                      <ServiceType.SCHOOL: 2>: {'service_name': 'School',
+                                                                'status_id': <Status.CLOSED: 7>,
+                                                                'status_name': 'Closed',
                                                                 'description': 'Public schools are closed for Winter Recess through December 31.',
-                                                                'exception_name': 'Winter Recess',
-                                                                'status_id': <Status.CLOSED: 7>},
-                                      <ServiceType.TRASH: 3>: {'date': datetime.date(2021, 12, 25),
+                                                                'exception_reason': 'Winter Recess',
+                                                                'exception_name': 'Closure',
+                                                                'is_exception': True,
+                                                                'routine_closure': False,
+                                                                'date': datetime.date(2021, 12, 24)},
+                                      <ServiceType.TRASH: 3>: {'service_name': 'Garbage and Recycling',
+                                                               'status_id': <Status.SUSPENDED: 6>,
+                                                               'status_name': 'Suspended',
                                                                'description': 'Trash, recycling, and compost collections are suspended for Christmas.',
-                                                               'exception_name': 'Christmas',
-                                                               'status_id': <Status.SUSPENDED: 6>}}}
+                                                               'exception_reason': 'Christmas',
+                                                               'exception_name': 'Collection Change',
+                                                               'is_exception': True,
+                                                               'routine_closure': False,
+                                                               'date': datetime.date(2021, 12, 25)}}}
 
 ```
 
@@ -171,7 +268,7 @@ async with aiohttp.ClientSession() as session:
 from datetime import date
 import asyncio
 import aiohttp
-from civcalnyc.civcalapi import CivCalAPI
+from nyc311calendar.api import NYC311API
 import pprint
 
 API_KEY = "YOUR_API_KEY_HERE"
@@ -181,9 +278,9 @@ pp = pprint.PrettyPrinter(width=200, sort_dicts=False)
 
 async def main():
     async with aiohttp.ClientSession() as session:
-        calendar = CivCalAPI(session, API_KEY)
+        calendar = NYC311API(session, API_KEY)
         resp = await calendar.get_calendar(
-            calendars=[CivCalAPI.CalendarTypes.NEXT_EXCEPTIONS], scrub=True
+            calendars=[NYC311API.CalendarTypes.NEXT_EXCEPTIONS], scrub=True
         )
         pp.pprint(resp)
 
@@ -198,14 +295,32 @@ asyncio.run(main())
 
 ```python
 
-{<CalendarTypes.NEXT_EXCEPTIONS: 3>: {<ServiceType.PARKING: 1>: {'date': datetime.date(2021, 12, 24),
-                                                              'description': 'Alternate side parking and meters are suspended for Christmas Day (Observed).',
-                                                              'exception_name': 'Christmas Day'},
-                                      <ServiceType.SCHOOL: 2>: {'date': datetime.date(2021, 12, 24),
+{<CalendarTypes.NEXT_EXCEPTIONS: 3>: {<ServiceType.PARKING: 1>: {'service_name': 'Alternate Side Parking',
+                                                                 'status_id': <Status.SUSPENDED: 6>,
+                                                                 'status_name': 'Suspended',
+                                                                 'description': 'Alternate side parking and meters are suspended for Christmas Day (Observed).',
+                                                                 'exception_reason': 'Christmas Day',
+                                                                 'exception_name': 'Rule Suspension',
+                                                                 'is_exception': True,
+                                                                 'routine_closure': False,
+                                                                 'date': datetime.date(2021, 12, 24)},
+                                      <ServiceType.SCHOOL: 2>: {'service_name': 'School',
+                                                                'status_id': <Status.CLOSED: 7>,
+                                                                'status_name': 'Closed',
                                                                 'description': 'Public schools are closed for Winter Recess through December 31.',
-                                                                'exception_name': 'Winter Recess'},
-                                      <ServiceType.TRASH: 3>: {'date': datetime.date(2021, 12, 25),
+                                                                'exception_reason': 'Winter Recess',
+                                                                'exception_name': 'Closure',
+                                                                'is_exception': True,
+                                                                'routine_closure': False,
+                                                                'date': datetime.date(2021, 12, 24)},
+                                      <ServiceType.TRASH: 3>: {'service_name': 'Garbage and Recycling',
+                                                               'status_id': <Status.SUSPENDED: 6>,
+                                                               'status_name': 'Suspended',
                                                                'description': 'Trash, recycling, and compost collections are suspended for Christmas.',
-                                                               'exception_name': 'Christmas'}}}
+                                                               'exception_reason': 'Christmas',
+                                                               'exception_name': 'Collection Change',
+                                                               'is_exception': True,
+                                                               'routine_closure': False,
+                                                               'date': datetime.date(2021, 12, 25)}}}
 
 ```
