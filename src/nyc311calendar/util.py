@@ -1,8 +1,9 @@
 """Utility functions"""
 
-from datetime import datetime, date, timedelta
-from typing import Union
+from datetime import date, datetime, timedelta
 import re
+from typing import Union
+
 import pytz
 
 

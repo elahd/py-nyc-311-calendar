@@ -119,7 +119,7 @@ async with aiohttp.ClientSession() as session:
 
 #### Days Ahead
 
-The Days Ahead calendar type returns all statuses for all services for 8 days starting on the day before the API request was made. The resonse dict is keyed by number of days relative to today. This is useful for showing a calendar of the week ahead (and yesterday, just in case you forgot to move your car). The example below is truncated to save space, showing three of 90 days.
+The Days Ahead calendar type returns all statuses for all services for 8 days starting on the day before the API request was made. The response dict is keyed by number of days relative to today. This is useful for showing a calendar of the week ahead (and yesterday, just in case you forgot to move your car). The example below is truncated to save space, showing three of 90 days.
 
 ```python
 
@@ -213,7 +213,7 @@ async with aiohttp.ClientSession() as session:
 
 #### Next Exceptions
 
-The Next Exceptions calendar type returns the next date on which there is a service exception for either of the three covered services. The resonse dict is keyed by service type. This is useful when you're not interested in normal operations and only want to know, say, when the next school closure is. The example below shows the full response.
+The Next Exceptions calendar type returns the next date on which there is a service exception for either of the three covered services. The response dict is keyed by service type. This is useful when you're not interested in normal operations and only want to know, say, when the next school closure is. The example below shows the full response.
 
 Note that exceptions include things like holidays, snow days, half days, and winter break. Summer session will not show up as an exception.
 

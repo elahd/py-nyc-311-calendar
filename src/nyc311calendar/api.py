@@ -1,9 +1,11 @@
 """CivCalNYC API"""
 
-import logging
 from datetime import date, datetime
 from enum import Enum
+import logging
+
 import aiohttp
+
 from .util import date_mod, scrubber
 
 _LOGGER = logging.getLogger(__name__)
@@ -150,11 +152,15 @@ class NYC311API:
 
         for calendar in calendars:
             if calendar is self.CalendarTypes.BY_DATE:
-                resp_dict[calendar] = api_resp
+                resp_dict[self.CalendarTypes.BY_DATE] = api_resp
             elif calendar is self.CalendarTypes.DAYS_AHEAD:
-                resp_dict[calendar] = await self.__build_days_ahead(api_resp)
+                resp_dict[
+                    self.CalendarTypes.DAYS_AHEAD
+                ] = await self.__build_days_ahead(api_resp)
             elif calendar is self.CalendarTypes.NEXT_EXCEPTIONS:
-                resp_dict[calendar] = await self.__build_next_exceptions(api_resp)
+                resp_dict[
+                    self.CalendarTypes.NEXT_EXCEPTIONS
+                ] = await self.__build_next_exceptions(api_resp)
 
         _LOGGER.debug("Got calendar.")
 
