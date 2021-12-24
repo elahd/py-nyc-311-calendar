@@ -44,35 +44,51 @@ class CivCalAPI:
         "IN EFFECT": {
             "name": "In Effect",
             "is_exception": False,
+            "routine_closure": False,
             "id": Status.IN_EFFECT,
         },
         "ON SCHEDULE": {
             "name": "On Schedule",
             "is_exception": False,
+            "routine_closure": False,
             "id": Status.ON_SCHEDULE,
         },
-        "OPEN": {"name": "Open", "is_exception": False, "id": Status.OPEN},
+        "OPEN": {
+            "name": "Open",
+            "routine_closure": False,
+            "is_exception": False,
+            "id": Status.OPEN,
+        },
         "PARTLY OPEN": {
             "name": "Partly Open",
             "is_exception": True,
+            "routine_closure": False,
             "id": Status.PARTLY_OPEN,
         },
         "NOT IN SESSION": {
             "name": "Not In Session",
             "is_exception": False,
+            "routine_closure": True,
             "id": Status.NOT_IN_SESSION,
         },
         "NOT IN EFFECT": {
             "name": "Not In Effect",
             "is_exception": False,
+            "routine_closure": True,
             "id": Status.NOT_IN_SESSION,
         },
         "SUSPENDED": {
             "name": "Suspended",
             "is_exception": True,
+            "routine_closure": False,
             "id": Status.SUSPENDED,
         },
-        "CLOSED": {"name": "Closed", "is_exception": True, "id": Status.CLOSED},
+        "CLOSED": {
+            "name": "Closed",
+            "routine_closure": False,
+            "is_exception": True,
+            "id": Status.CLOSED,
+        },
     }
     KNOWN_SERVICES = {
         "Alternate Side Parking": {
@@ -106,6 +122,7 @@ class CivCalAPI:
             self.status_by_id[value["id"]] = {
                 "name": value["name"],
                 "is_exception": value["is_exception"],
+                "routine_closure": value["routine_closure"],
             }
 
         self.service_by_id = {}
@@ -184,6 +201,7 @@ class CivCalAPI:
                     else exception_reason,
                     "exception_name": self.service_by_id[service_id]["exception_name"],
                     "is_exception": self.status_by_id[status_id]["is_exception"],
+                    "routine_closure": self.status_by_id[status_id]["routine_closure"],
                 }
 
             resp_dict[cur_date] = day_dict
