@@ -13,7 +13,13 @@ Use at your own risk.
 
 ## Usage
 
-### First, get an API key
+### First, install via pip
+
+```bash
+pip install nyc311calendar
+```
+
+### Then, get an API key
 
 An NYC API Portal developer account is required to use this library.
 
@@ -21,7 +27,7 @@ An NYC API Portal developer account is required to use this library.
 2. Log in, then subscribe to the "NYC 311 Public Developers" product at https://api-portal.nyc.gov/products?api=nyc-311-public-api. This subscription unlocks the calendar product.
 3. Get your API key at https://api-portal.nyc.gov/developer. Either key (primary/secondary) will work.
 
-### Then, get data
+### Finally, get data
 
 ```python
 
