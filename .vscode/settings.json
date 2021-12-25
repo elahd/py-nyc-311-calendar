@@ -13,5 +13,8 @@
   "python.formatting.provider": "black",
   "python.analysis.extraPaths": [
     "/workspaces/py-nyc-311-calendar/.venv/lib/python3.8/site-packages"
-  ]
+  ],
+  "files.associations": {
+    "*.yaml": "home-assistant"
+  }
 }

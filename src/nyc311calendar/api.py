@@ -1,4 +1,4 @@
-"""CivCalNYC API"""
+"""NYC 311 Calendar API."""
 
 from datetime import date, datetime
 from enum import Enum
@@ -15,7 +15,7 @@ class NYC311API:
     """API representation."""
 
     class CalendarTypes(Enum):
-        """Calendar types to be returned by NYC311API"""
+        """Calendar views."""
 
         BY_DATE = 1
         DAYS_AHEAD = 2
@@ -33,7 +33,7 @@ class NYC311API:
         CLOSED = 7
 
     class ServiceType(Enum):
-        """Types of events reported via API"""
+        """Types of events reported via API."""
 
         PARKING = 1
         SCHOOL = 2
@@ -115,6 +115,7 @@ class NYC311API:
         session: aiohttp.ClientSession,
         api_key: str,
     ):
+        """Create new API controller with existing aiohttp session."""
         self._session = session
         self._api_key = api_key
         self._request_headers = {"Ocp-Apim-Subscription-Key": api_key}
@@ -143,7 +144,7 @@ class NYC311API:
         ),
         scrub: bool = False,
     ):
-        """Main function to retrieve calendars from this library."""
+        """Retrieve calendar data."""
         resp_dict = {}
 
         start_date = date_mod(-1)
@@ -217,7 +218,7 @@ class NYC311API:
         return resp_dict
 
     async def __build_days_ahead(self, resp_dict):
-        """Builds dict of statuses keyed by number of days from today."""
+        """Build dict of statuses keyed by number of days from today."""
         days_ahead = {}
         for i in list(range(-1, 7)):
             i_date = date_mod(i)
@@ -231,7 +232,7 @@ class NYC311API:
         return days_ahead
 
     async def __build_next_exceptions(self, resp_dict):
-        """Builds dict of next exception for all known types."""
+        """Build dict of next exception for all known types."""
         next_exceptions = {}
         previous_date = None
         for key, value in resp_dict.items():
