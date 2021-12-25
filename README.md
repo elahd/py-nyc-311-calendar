@@ -2,7 +2,7 @@
 
 ## Asynchronous data fetcher for NYC school closures, trash collection holidays, and alternate side parking suspensions.
 
-Uses the [NYC 311 Public API](https://api-portal.nyc.gov/docs/services/nyc-311-public-api/operations/api-GetCalendar-get/console). Built to drive a Home Assistant add-in.
+Uses the [NYC 311 Public API](https://api-portal.nyc.gov/docs/services/nyc-311-public-api/operations/api-GetCalendar-get/console). Built to drive the Home Assistant [NYC 311 Public Services Calendar](https://github.com/elahd/ha-nyc311) add-in.
 
 ## Warning
 This is an alpha release. Expect breaking changes.
