@@ -1,9 +1,8 @@
 # via https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/#
 name: Publish to PyPI
 on:
-  push:
-    branches:
-      - main
+  release:
+    types: [published]
 jobs:
   build-n-publish:
     name: Build and publish to PyPI
