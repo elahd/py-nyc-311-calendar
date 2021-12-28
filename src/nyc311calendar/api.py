@@ -101,7 +101,7 @@ class NYC311API:
         "Collections": {
             "name": "Sanitation",
             "id": ServiceType.TRASH,
-            "exception_name": "Collection Change",
+            "exception_name": "Collection Suspension",
         },
         "Schools": {
             "name": "School",
