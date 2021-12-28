@@ -94,12 +94,12 @@ class NYC311API:
     }
     KNOWN_SERVICES = {
         "Alternate Side Parking": {
-            "name": "Alternate Side Parking",
+            "name": "Parking",
             "id": ServiceType.PARKING,
             "exception_name": "Rule Suspension",
         },
         "Collections": {
-            "name": "Garbage and Recycling",
+            "name": "Sanitation",
             "id": ServiceType.TRASH,
             "exception_name": "Collection Change",
         },
