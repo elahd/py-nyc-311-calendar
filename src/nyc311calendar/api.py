@@ -31,6 +31,7 @@ class NYC311API:
         NOT_IN_SESSION = 5
         SUSPENDED = 6
         CLOSED = 7
+        DELAYED = 8
 
     class ServiceType(Enum):
         """Types of events reported via API."""
@@ -90,6 +91,12 @@ class NYC311API:
             "routine_closure": False,
             "is_exception": True,
             "id": Status.CLOSED,
+        },
+        "DELAYED": {
+            "name": "Delayed",
+            "routine_closure": False,
+            "is_exception": True,
+            "id": Status.DELAYED,
         },
     }
     KNOWN_SERVICES = {
