@@ -1,3 +1,5 @@
+[![Downloads](https://pepy.tech/badge/nyc311calendar)](https://pepy.tech/project/nyc311calendar)
+
 # nyc311calendar
 
 ## Asynchronous data fetcher for NYC school closures, trash collection holidays, and alternate side parking suspensions.
