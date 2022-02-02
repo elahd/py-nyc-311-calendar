@@ -1,28 +1,30 @@
 """Utility functions."""
 
+from __future__ import annotations
+
 from datetime import date, datetime, timedelta
 import re
-from typing import Union
-
-import pytz
+from zoneinfo import ZoneInfo
 
 
-def today():
+def today() -> date:
     """Get today's date in New York. We don't care about the user's local time. See https://en.wikipedia.org/wiki/View_of_the_World_from_9th_Avenue for reference."""
-    return datetime.now(pytz.timezone("US/Eastern")).date()
+    return datetime.now(ZoneInfo("America/New_York")).date()
 
 
-def date_mod(num_days: int, p_date: date = today()):
+def date_mod(num_days: int, p_date: date = today()) -> date:
     """Adjust a date object — not a datetime object — by the specified number of days. Returns a date object."""
     return (
         datetime.combine(p_date, datetime.min.time()) + timedelta(days=num_days)
     ).date()
 
 
-def scrubber(exp_name: Union[str, None]):
+def scrubber(exp_name: str | None) -> str | None:
     """Scrub (Observed) and calendar year from event names. 'Christmas Day (Observed) 2021' becomes 'Christmas Day'."""
     if exp_name is None:
         return None
 
-    regexp = r"( *\(Observed\) *)|( *\d{4} *)"  # Captures (Observed), YYYY, and any whitespace before, after, and in between.
+    regexp = (  # Captures (Observed), YYYY, and any whitespace before, after, and in between.
+        r"( *\(Observed\) *)|( *\d{4} *)"
+    )
     return re.sub(regexp, "", exp_name)

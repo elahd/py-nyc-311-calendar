@@ -7,6 +7,7 @@
 Uses the [NYC 311 Public API](https://api-portal.nyc.gov/docs/services/nyc-311-public-api/operations/api-GetCalendar-get/console). Built to drive the Home Assistant [NYC 311 Public Services Calendar](https://github.com/elahd/ha-nyc311) add-in.
 
 ## Warning
+
 This is an alpha release. Expect breaking changes.
 
 I take no responsibility for parking tickets, overflowing trash cans, kids stranded at bus stops or missing exams, etc. 🤷🏼‍♂️

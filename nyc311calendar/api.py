@@ -1,8 +1,10 @@
 """NYC 311 Calendar API."""
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from enum import Enum
+import json
 import logging
+from typing import Iterable
 
 import aiohttp
 
@@ -144,13 +146,13 @@ class NYC311API:
 
     async def get_calendar(
         self,
-        calendars=(
+        calendars: list[CalendarTypes] = [
             CalendarTypes.BY_DATE,
             CalendarTypes.DAYS_AHEAD,
             CalendarTypes.NEXT_EXCEPTIONS,
-        ),
+        ],
         scrub: bool = False,
-    ):
+    ) -> dict:
         """Retrieve calendar data."""
         resp_dict = {}
 
@@ -176,7 +178,7 @@ class NYC311API:
 
     async def __async_calendar_update(
         self, start_date: date, end_date: date, scrub: bool = False
-    ):
+    ) -> dict:
         """Get events for specified date range."""
 
         date_params = {
@@ -224,31 +226,38 @@ class NYC311API:
 
         return resp_dict
 
-    async def __build_days_ahead(self, resp_dict):
+    async def __build_days_ahead(self, resp_dict: dict) -> dict:
         """Build dict of statuses keyed by number of days from today."""
         days_ahead = {}
         for i in list(range(-1, 7)):
             i_date = date_mod(i)
-            day = {"date": i_date, "services": {}}
+            day: dict = {"date": i_date}
+            tmp_services: dict = {}
             for _, value in self.KNOWN_SERVICES.items():
-                day["services"][value["id"]] = resp_dict[i_date][value["id"]]
+                tmp_services[value["id"]] = resp_dict[i_date][value["id"]]
+            day["services"] = tmp_services
             days_ahead[i] = day
 
         _LOGGER.debug("Built days ahead.")
 
         return days_ahead
 
-    async def __build_next_exceptions(self, resp_dict):
+    async def __build_next_exceptions(self, resp_dict: dict) -> dict:
         """Build dict of next exception for all known types."""
-        next_exceptions = {}
+        next_exceptions: dict = {}
         previous_date = None
         for key, value in resp_dict.items():
+
+            # We don't want to show yesterday's calendar event as a next exception. Skip over if date is yesterday.
+            if key == (date.today() - timedelta(days=1)):
+                continue
+
             # Assuming that array is already sorted by date. This is dangerous, but we're being
             # lazy. Previous_date will help verify order. We'll die abruptly if order is incorrect.
-
             if previous_date is None:
                 previous_date = key
-            elif key < previous_date:
+
+            if key < previous_date:
                 raise self.DateOrderException("resp_dict not sorted by date.")
 
             for svc, svc_details in value.items():
@@ -264,7 +273,7 @@ class NYC311API:
 
         return next_exceptions
 
-    async def __call_api(self, base_url: str, url_params: dict):
+    async def __call_api(self, base_url: str, url_params: dict) -> dict:
         try:
             async with self._session.get(
                 base_url,
@@ -274,8 +283,8 @@ class NYC311API:
                 timeout=60,
                 ssl=True,
             ) as resp:
-                json = await resp.json()
-                _LOGGER.debug("got %s", json)
+                resp_json = await resp.json()
+                _LOGGER.debug("got %s", resp_json)
 
         except aiohttp.ClientResponseError as error:
             if error.status in range(400, 500):
@@ -287,7 +296,7 @@ class NYC311API:
 
         _LOGGER.debug("Called API.")
 
-        return json
+        return dict(resp_json)
 
     class UnexpectedEntry(Exception):
         """Thrown when API returns unexpected "key"."""
