@@ -8,7 +8,7 @@ from typing import Iterable
 
 import aiohttp
 
-from .util import date_mod, scrubber
+from .util import date_mod, scrubber, today
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -249,7 +249,7 @@ class NYC311API:
         for key, value in resp_dict.items():
 
             # We don't want to show yesterday's calendar event as a next exception. Skip over if date is yesterday.
-            if key == (date.today() - timedelta(days=1)):
+            if key == (today() - timedelta(days=1)):
                 continue
 
             # Assuming that array is already sorted by date. This is dangerous, but we're being
