@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-Use this template when you get an error with the text, "Encountered unknown service or status. Please report this to the developers using the "Unknown Service or Status" bug template."
+Use this template when you get an error with the text, "Encountered unknown service or status. Please report this to the developers using the "Unknown Service or Status" bug template at https://github.com/elahd/nyc311calendar/issues/new/choose."
 
 Replace the content below with the actual error you encountered.
 
