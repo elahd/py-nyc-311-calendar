@@ -34,6 +34,7 @@ class NYC311API:
         SUSPENDED = 6
         CLOSED = 7
         DELAYED = 8
+        STAFF_ONLY = 9
 
     class ServiceType(Enum):
         """Types of events reported via API."""
@@ -99,6 +100,12 @@ class NYC311API:
             "routine_closure": False,
             "is_exception": True,
             "id": Status.DELAYED,
+        },
+        "STAFF ONLY": {
+            "name": "Staff Only",
+            "routine_closure": False,
+            "is_exception": True,
+            "id": Status.STAFF_ONLY,
         },
     }
     KNOWN_SERVICES = {
@@ -200,11 +207,20 @@ class NYC311API:
                 try:
                     service_id = self.KNOWN_SERVICES[item["type"]]["id"]
                     status_id = self.KNOWN_STATUSES[item["status"]]["id"]
-                    description = item["details"]
+                    description = item.get("details")
                     exception_reason = (lambda x: scrubber(x) if scrub else x)(
                         item.get("exceptionName")
                     )
-                except Exception as error:
+                except KeyError as error:
+                    _LOGGER.error(
+                        """\n\nEncountered unknown service or status. Please report this to the developers using the "Unknown Service or Status" bug template at https://github.com/elahd/nyc311calendar/issues/new/choose.\n\n"""
+                        """===BEGIN COPYING HERE===\n"""
+                        """Item ID: %s\n"""
+                        """Day: %s\n"""
+                        """===END COPYING HERE===\n""",
+                        item.get("exceptionName", ""),
+                        day,
+                    )
                     raise self.UnexpectedEntry from error
 
                 day_dict[service_id] = {
