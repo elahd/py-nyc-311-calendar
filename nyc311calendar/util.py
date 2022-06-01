@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
+from datetime import date
+from datetime import datetime
+from datetime import timedelta
 import re
+
 from zoneinfo import ZoneInfo
 
 
@@ -19,7 +22,7 @@ def date_mod(num_days: int, p_date: date = today()) -> date:
     ).date()
 
 
-def scrubber(exp_name: str | None) -> str | None:
+def remove_observed(exp_name: str | None) -> str | None:
     """Scrub (Observed) and calendar year from event names. 'Christmas Day (Observed) 2021' becomes 'Christmas Day'."""
     if exp_name is None:
         return None
