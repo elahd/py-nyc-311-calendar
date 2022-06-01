@@ -1,11 +1,13 @@
 {
   "image": "ludeeus/container:python-base-debian",
-  "postCreateCommand": "pip install -r requirements-dev.txt && pip install --editable . && pre-commit install-hooks",
+  "postCreateCommand": "pip install -r requirements-dev.txt && pip install --editable . && pre-commit install && pre-commit install-hooks",
   "extensions": [
     "ms-python.vscode-pylance",
     "esbenp.prettier-vscode",
     "github.vscode-pull-request-github",
     "ryanluker.vscode-coverage-gutters",
+    "janisdd.vscode-edit-csv",
+    "mechatroner.rainbow-csv",
     "bungcip.better-toml",
     "donjayamanne.python-extension-pack",
     "marklarah.pre-commit-vscode"
@@ -27,6 +29,7 @@
     "editor.formatOnPaste": false,
     "editor.formatOnSave": true,
     "editor.formatOnType": true,
+    "python.linting.flake8Enabled": true,
     "files.trimTrailingWhitespace": true,
     "python.linting.mypyEnabled": true,
     "python.defaultInterpreterPath": "/usr/local/bin/python",
@@ -37,6 +40,7 @@
     "python.linting.pycodestylePath": "/usr/local/bin/pycodestyle",
     "python.linting.pylintPath": "/usr/local/bin/pylint",
     "python.sortImports.path": "/usr/local/bin/isort",
+    "python.linting.banditEnabled": true,
     "typescript.tsc.autoDetect": "off",
     "grunt.autoDetect": "off",
     "jake.autoDetect": "off",
