@@ -14,7 +14,8 @@ from nyc311calendar.services import Sanitation
 from nyc311calendar.services import School
 from nyc311calendar.services import Service
 from nyc311calendar.services import ServiceType
-from nyc311calendar.services import StatusTypeDetail
+from nyc311calendar.services import ServiceTypeProfile
+from nyc311calendar.services import StatusTypeProfile
 
 from .util import date_mod
 from .util import remove_observed
@@ -23,22 +24,7 @@ from .util import today
 __version__ = "v0.3"
 
 
-_LOGGER = logging.getLogger(__name__)
-
-# Dictionary Format
-# {
-#   "2022-05-19": {
-#       ServiceType.PARKING: {
-#           (CalendarDayServiceEntry)
-#       },
-#       ServiceType.SCHOOL: {
-#           (CalendarDayServiceEntry)
-#       },
-#       ServiceType.COLLECTION: {
-#           (CalendarDayServiceEntry)
-#       }
-#   }
-# }
+log = logging.getLogger(__name__)
 
 
 class CalendarType(Enum):
@@ -50,11 +36,11 @@ class CalendarType(Enum):
 
 
 @dataclass
-class CalendarDayServiceEntry:
+class CalendarDayEntry:
     """Entry for each service within a day."""
 
-    service_name: str
-    status_profile: StatusTypeDetail | None
+    service_profile: ServiceTypeProfile
+    status_profile: StatusTypeProfile | None
     exception_reason: str
     raw_description: str
     date: date
@@ -80,9 +66,17 @@ class NYC311API:
     async def get_calendar(
         self,
         calendars: list[CalendarType] | None = None,
-        scrub: bool = False,
+        scrub: bool = True,
     ) -> dict:
-        """Retrieve calendar data."""
+        """Primary function for getting calendars from API.
+
+        Args:
+            calendars (list[CalendarType] | None, optional): List of CalendarTypes to be retrieved. Defaults to None.
+            scrub (bool, optional): Whether to scrub "(Observed)" from names of holidays. (Observed) is used to indicate that, say, schools are closed on a Friday for the official observation of a holidays that falls on a weekend. Defaults to True.
+
+        Returns:
+            dict: Dictionary of calendars.
+        """
 
         if not calendars:
             calendars = [
@@ -107,9 +101,9 @@ class NYC311API:
                     api_resp
                 )
 
-        _LOGGER.info("Got calendar.")
+        log.info("Got calendar.")
 
-        _LOGGER.debug(resp_dict)
+        log.debug(resp_dict)
 
         return resp_dict
 
@@ -152,20 +146,20 @@ class NYC311API:
                     if service_type == ServiceType.SCHOOL:
                         service_class = School
                         status_type = School.StatusType(raw_status)
-                        status_profile = School.status_map[status_type]
+                        status_profile = School.STATUS_MAP[status_type]
 
                     elif service_type == ServiceType.PARKING:
                         service_class = Parking
                         status_type = Parking.StatusType(raw_status)
-                        status_profile = Parking.status_map[status_type]
+                        status_profile = Parking.STATUS_MAP[status_type]
 
                     elif service_type == ServiceType.SANITATION:
                         service_class = Sanitation
                         status_type = Sanitation.StatusType(raw_status)
-                        status_profile = Sanitation.status_map[status_type]
+                        status_profile = Sanitation.STATUS_MAP[status_type]
 
                 except (KeyError, AttributeError) as error:
-                    _LOGGER.error(
+                    log.error(
                         """\n\nEncountered unknown service or status. Please report this to the developers using the "Unknown Service or Status" bug template at https://github.com/elahd/nyc311calendar/issues/new/choose.\n\n"""
                         """===BEGIN COPYING HERE===\n"""
                         """Item ID: %s\n"""
@@ -176,10 +170,10 @@ class NYC311API:
                     )
                     raise self.UnexpectedEntry from error
 
-                day_dict[service_type] = CalendarDayServiceEntry(
-                    service_name=str(service_class.name),
+                day_dict[service_type] = CalendarDayEntry(
+                    service_profile=service_class.PROFILE,
                     status_profile=status_profile
-                    if isinstance(status_profile, StatusTypeDetail)
+                    if isinstance(status_profile, StatusTypeProfile)
                     else None,
                     exception_reason=""
                     if scrubbed_exception_reason is None
@@ -190,30 +184,74 @@ class NYC311API:
 
             resp_dict[cur_date] = day_dict
 
-        _LOGGER.debug("Updated calendar.")
+        log.debug("Updated calendar.")
 
         return resp_dict
 
     @classmethod
     def __build_days_ahead(cls, resp_dict: dict) -> dict:
         """Build dict of statuses keyed by number of days from today."""
-        days_ahead = {}
-        for i in list(range(-1, 7)):
-            i_date = date_mod(i)
-            day: dict = {"date": i_date}
-            tmp_services: dict = {}
-            for svc_type in ServiceType:
-                tmp_services[svc_type] = resp_dict[i_date][svc_type]
-            day["services"] = tmp_services
-            days_ahead[i] = day
 
-        _LOGGER.debug("Built days ahead.")
+        # Dictionary Format
+        # {
+        #     "-1": {
+        #         "date": "2022-05-19",
+        #         "services": {
+        #             ServiceType.PARKING: {
+        #                 (CalendarDayEntry)
+        #             },
+        #             ServiceType.SCHOOL: {
+        #                 (CalendarDayEntry)
+        #             },
+        #             ServiceType.COLLECTION: {
+        #                 (CalendarDayEntry)
+        #             }
+        #         }
+        #     }
+        # }
 
-        return days_ahead
+        days_ahead_calendar = {}
+
+        # Iterate through 8 days, starting with yesterday and ending a week from today.
+        for date_delta in list(range(-1, 7)):
+
+            # Generate date from delta
+            i_date = date_mod(date_delta)
+
+            services_on_date: dict = {}
+
+            # Get each service from response dictionary.
+            for service_type in ServiceType:
+                services_on_date[service_type] = resp_dict[i_date][service_type]
+
+            days_ahead_calendar[date_delta] = {
+                "date": i_date,
+                "services": services_on_date,
+            }
+
+        log.debug("Built days ahead.")
+
+        return days_ahead_calendar
 
     @classmethod
     def __build_next_exceptions(cls, resp_dict: dict) -> dict:
         """Build dict of next exception for all known types."""
+
+        # Dictionary Format
+        # {
+        #   "2022-05-19": {
+        #       ServiceType.PARKING: {
+        #           (CalendarDayEntry)
+        #       },
+        #       ServiceType.SCHOOL: {
+        #           (CalendarDayEntry)
+        #       },
+        #       ServiceType.COLLECTION: {
+        #           (CalendarDayEntry)
+        #       }
+        #   }
+        # }
+
         next_exceptions: dict = {}
 
         for date_, services in sorted(resp_dict.items()):
@@ -223,24 +261,24 @@ class NYC311API:
                 continue
 
             service_type: ServiceType
-            service_entry: CalendarDayServiceEntry
+            service_entry: CalendarDayEntry
 
             for service_type, service_entry in services.items():
 
                 # Skip if we already logged an exception for this category or if the status is not exceptional.
                 if next_exceptions.get(service_type) or (
                     service_entry.status_profile
-                    and service_entry.status_profile.exception_type
+                    and service_entry.status_profile.standardized_type
                     in [
-                        Service.StandardizedExceptionType.NORMAL_ACTIVE,
-                        Service.StandardizedExceptionType.NORMAL_SUSPENDED,
+                        Service.StandardizedStatusType.NORMAL_ACTIVE,
+                        Service.StandardizedStatusType.NORMAL_SUSPENDED,
                     ]
                 ):
                     continue
 
                 next_exceptions[service_type] = service_entry
 
-        _LOGGER.debug("Built next exceptions.")
+        log.debug("Built next exceptions.")
 
         return next_exceptions
 
@@ -255,7 +293,7 @@ class NYC311API:
                 ssl=True,
             ) as resp:
                 resp_json = await resp.json()
-                _LOGGER.debug("got %s", resp_json)
+                log.debug("got %s", resp_json)
 
         except aiohttp.ClientResponseError as error:
             if error.status in range(400, 500):
@@ -265,7 +303,7 @@ class NYC311API:
         except Exception as error:
             raise self.CannotConnect from error
 
-        _LOGGER.debug("Called API.")
+        log.debug("Called API.")
 
         return dict(resp_json)
 

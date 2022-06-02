@@ -18,34 +18,36 @@ class ServiceType(Enum):
 
 
 @dataclass
-class StatusTypeDetail:
+class ServiceTypeProfile:
+    """Service metadata."""
+
+    name: str  # Service name.
+    exception_name: str  # Term for when this service is suspended.
+    service_type: ServiceType
+
+
+@dataclass
+class StatusTypeProfile:
     """Status impact on a particular ServiceType."""
 
     name: str
-    exception_type: School.StandardizedExceptionType | Parking.StandardizedExceptionType | Sanitation.StandardizedExceptionType
     description: str
+    standardized_type: School.StandardizedStatusType | Parking.StandardizedStatusType | Sanitation.StandardizedStatusType
+    reported_type: School.StatusType | Parking.StatusType | Sanitation.StatusType
 
 
 class Service(ABC):
     """Abstract class for real city services."""
 
-    status_map: dict
-
     @abstractmethod
     class StatusType(Enum):
         """Calendar item status codes."""
 
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        """Service name."""
+    PROFILE: ServiceTypeProfile
 
-    @property
-    @abstractmethod
-    def exception_name(self) -> str:
-        """Term for when this service is suspended."""
+    STATUS_MAP: dict
 
-    class StandardizedExceptionType(Enum):
+    class StandardizedStatusType(Enum):
         """Calendar views."""
 
         NORMAL_ACTIVE = 1  # E.g.: School open; garbage to be collected; parking meters and asp in effect.
@@ -75,60 +77,60 @@ class School(Service):
         STAFF_ONLY = "STAFF ONLY"
         TENTATIVE = "TENTATIVE"
 
-    status_map: dict = {
-        StatusType.CLOSED: StatusTypeDetail(
+    PROFILE = ServiceTypeProfile(
+        name="School", exception_name="Closure", service_type=ServiceType.SCHOOL
+    )
+
+    STATUS_MAP: dict = {
+        StatusType.CLOSED: StatusTypeProfile(
             name="Closed",
-            exception_type=Service.StandardizedExceptionType.SUSPENDED,
+            standardized_type=Service.StandardizedStatusType.RECESS,
             description="School is closed for the summer.",
+            reported_type=StatusType.CLOSED,
         ),
-        StatusType.NO_INFO: StatusTypeDetail(
+        StatusType.NO_INFO: StatusTypeProfile(
             name="No Information",
-            exception_type=Service.StandardizedExceptionType.UNSURE,
+            standardized_type=Service.StandardizedStatusType.UNSURE,
             description="Information is not available for this date.",
+            reported_type=StatusType.NO_INFO,
         ),
-        StatusType.NOT_IN_SESSION: StatusTypeDetail(
+        StatusType.NOT_IN_SESSION: StatusTypeProfile(
             name="Not In Session",
-            exception_type=Service.StandardizedExceptionType.SUSPENDED,
+            standardized_type=Service.StandardizedStatusType.NORMAL_SUSPENDED,
             description="Schools are closed.",
+            reported_type=StatusType.NOT_IN_SESSION,
         ),
-        StatusType.OPEN: StatusTypeDetail(
+        StatusType.OPEN: StatusTypeProfile(
             name="Open",
-            exception_type=Service.StandardizedExceptionType.NORMAL_ACTIVE,
+            standardized_type=Service.StandardizedStatusType.NORMAL_ACTIVE,
             description="School is open as usual.",
+            reported_type=StatusType.OPEN,
         ),
-        StatusType.PARTLY_OPEN: StatusTypeDetail(
+        StatusType.PARTLY_OPEN: StatusTypeProfile(
             name="Partly Open",
-            exception_type=Service.StandardizedExceptionType.PARTIAL,
+            standardized_type=Service.StandardizedStatusType.PARTIAL,
             description="School is open for some students and not others.",
+            reported_type=StatusType.PARTLY_OPEN,
         ),
-        StatusType.REMOTE_ONLY: StatusTypeDetail(
+        StatusType.REMOTE_ONLY: StatusTypeProfile(
             name="Remote Only",
-            exception_type=Service.StandardizedExceptionType.REMOTE,
+            standardized_type=Service.StandardizedStatusType.REMOTE,
             description="Students are scheduled for remote learning.",
+            reported_type=StatusType.REMOTE_ONLY,
         ),
-        StatusType.STAFF_ONLY: StatusTypeDetail(
+        StatusType.STAFF_ONLY: StatusTypeProfile(
             name="Closed for Students",
-            exception_type=Service.StandardizedExceptionType.PARTIAL,
+            standardized_type=Service.StandardizedStatusType.PARTIAL,
             description="Schools are closed for students but open for staff.",
+            reported_type=StatusType.STAFF_ONLY,
         ),
-        StatusType.TENTATIVE: StatusTypeDetail(
+        StatusType.TENTATIVE: StatusTypeProfile(
             name="Tentative",
-            exception_type=Service.StandardizedExceptionType.UNSURE,
+            standardized_type=Service.StandardizedStatusType.UNSURE,
             description="Schedule for this day has not yet been determined.",
+            reported_type=StatusType.TENTATIVE,
         ),
     }
-
-    @property
-    def name(self) -> str:
-        """Service name."""
-
-        return "School"
-
-    @property
-    def exception_name(self) -> str:
-        """Term for when this service is suspended."""
-
-        return "Closure"
 
 
 class Sanitation(Service):
@@ -147,66 +149,67 @@ class Sanitation(Service):
         SUSPENDED = "SUSPENDED"
         NO_LEGACY_TRASH = "COLLECTION AND RECYCLING SUSPENDED"
 
-    status_map: dict = {
-        StatusType.NO_COMPOST: StatusTypeDetail(
+    PROFILE = ServiceTypeProfile(
+        name="Sanitation",
+        exception_name="Collection Suspension",
+        service_type=ServiceType.SANITATION,
+    )
+
+    STATUS_MAP: dict = {
+        StatusType.NO_COMPOST: StatusTypeProfile(
             name="Compost Collection Suspended",
-            exception_type=Service.StandardizedExceptionType.PARTIAL,
+            standardized_type=Service.StandardizedStatusType.PARTIAL,
             description=(
                 "Compost collection is suspended. Trash and recycling collections"
                 " are on schedule."
             ),
+            reported_type=StatusType.NO_COMPOST,
         ),
-        StatusType.DELAYED: StatusTypeDetail(
+        StatusType.DELAYED: StatusTypeProfile(
             name="Delayed",
-            exception_type=Service.StandardizedExceptionType.DELAYED,
+            standardized_type=Service.StandardizedStatusType.DELAYED,
             description="Trash, recycling, and compost collections are delayed.",
+            reported_type=StatusType.DELAYED,
         ),
-        StatusType.NO_INFO: StatusTypeDetail(
+        StatusType.NO_INFO: StatusTypeProfile(
             name="To Be Determined",
-            exception_type=Service.StandardizedExceptionType.UNSURE,
+            standardized_type=Service.StandardizedStatusType.UNSURE,
             description="Schedule for this day has not yet been determined.",
+            reported_type=StatusType.NO_INFO,
         ),
-        StatusType.NOT_IN_EFFECT: StatusTypeDetail(
+        StatusType.NOT_IN_EFFECT: StatusTypeProfile(
             name="Not In Effect",
-            exception_type=Service.StandardizedExceptionType.NORMAL_SUSPENDED,
+            standardized_type=Service.StandardizedStatusType.NORMAL_SUSPENDED,
             description=(
                 "Trash, recycling, and compost collections are not in effect on"
                 " Sundays."
             ),
+            reported_type=StatusType.NOT_IN_EFFECT,
         ),
-        StatusType.ON_SCHEDULE: StatusTypeDetail(
+        StatusType.ON_SCHEDULE: StatusTypeProfile(
             name="On Schedule",
-            exception_type=Service.StandardizedExceptionType.NORMAL_ACTIVE,
+            standardized_type=Service.StandardizedStatusType.NORMAL_ACTIVE,
             description=(
                 "Trash, recycling, and compost collection are operating as usual."
             ),
+            reported_type=StatusType.ON_SCHEDULE,
         ),
-        StatusType.SUSPENDED: StatusTypeDetail(
+        StatusType.SUSPENDED: StatusTypeProfile(
             name="Suspended",
-            exception_type=Service.StandardizedExceptionType.SUSPENDED,
+            standardized_type=Service.StandardizedStatusType.SUSPENDED,
             description="Trash, recycling, and compost collections are suspended.",
+            reported_type=StatusType.SUSPENDED,
         ),
-        StatusType.NO_LEGACY_TRASH: StatusTypeDetail(
+        StatusType.NO_LEGACY_TRASH: StatusTypeProfile(
             name="Trash and Recycling Collection Suspended",
-            exception_type=Service.StandardizedExceptionType.PARTIAL,
+            standardized_type=Service.StandardizedStatusType.PARTIAL,
             description=(
                 "Trash and recycling collections are suspended. Compost collection"
                 " is on schedule."
             ),
+            reported_type=StatusType.NO_LEGACY_TRASH,
         ),
     }
-
-    @property
-    def name(self) -> str:
-        """Service name."""
-
-        return "Sanitation"
-
-    @property
-    def exception_name(self) -> str:
-        """Term for when this service is suspended."""
-
-        return "Collection Suspension"
 
 
 class Parking(Service):
@@ -222,39 +225,37 @@ class Parking(Service):
         NOT_IN_EFFECT = "NOT IN EFFECT"
         SUSPENDED = "SUSPENDED"
 
-    status_map = {
-        StatusType.IN_EFFECT: StatusTypeDetail(
+    PROFILE = ServiceTypeProfile(
+        name="Parking",
+        exception_name="Rule Suspension",
+        service_type=ServiceType.PARKING,
+    )
+
+    STATUS_MAP = {
+        StatusType.IN_EFFECT: StatusTypeProfile(
             name="In Effect",
-            exception_type=Service.StandardizedExceptionType.NORMAL_ACTIVE,
+            standardized_type=Service.StandardizedStatusType.NORMAL_ACTIVE,
             description="Alternate side parking and meters are in effect.",
+            reported_type=StatusType.IN_EFFECT,
         ),
-        StatusType.NO_INFO: StatusTypeDetail(
+        StatusType.NO_INFO: StatusTypeProfile(
             name="No Information",
-            exception_type=Service.StandardizedExceptionType.UNSURE,
+            standardized_type=Service.StandardizedStatusType.UNSURE,
             description="Information is not available for this date.",
+            reported_type=StatusType.NO_INFO,
         ),
-        StatusType.NOT_IN_EFFECT: StatusTypeDetail(
+        StatusType.NOT_IN_EFFECT: StatusTypeProfile(
             name="Not In Effect",
-            exception_type=Service.StandardizedExceptionType.NORMAL_SUSPENDED,
+            standardized_type=Service.StandardizedStatusType.NORMAL_SUSPENDED,
             description=(
                 "Alternate side parking and meters are not in effect on Sundays."
             ),
+            reported_type=StatusType.NOT_IN_EFFECT,
         ),
-        StatusType.SUSPENDED: StatusTypeDetail(
+        StatusType.SUSPENDED: StatusTypeProfile(
             name="Suspended",
-            exception_type=Service.StandardizedExceptionType.SUSPENDED,
+            standardized_type=Service.StandardizedStatusType.SUSPENDED,
             description="Alternate side parking and meters are suspended.",
+            reported_type=StatusType.SUSPENDED,
         ),
     }
-
-    @property
-    def name(self) -> str:
-        """Service name."""
-
-        return "Parking"
-
-    @property
-    def exception_name(self) -> str:
-        """Term for when this service is suspended."""
-
-        return "Rule Suspension"

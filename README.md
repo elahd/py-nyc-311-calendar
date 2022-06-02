@@ -68,7 +68,7 @@ The By Date calendar type returns all statuses for all services for 90 days star
 async with aiohttp.ClientSession() as session:
     calendar = NYC311API(session, API_KEY)
     resp = await calendar.get_calendar(
-        calendars=[NYC311API.CalendarTypes.BY_DATE], scrub=True
+        calendars=[CalendarType.BY_DATE], scrub=True
     )
 
 ```
@@ -135,7 +135,7 @@ The Days Ahead calendar type returns all statuses for all services for 8 days st
 async with aiohttp.ClientSession() as session:
     calendar = NYC311API(session, API_KEY)
     resp = await calendar.get_calendar(
-        calendars=[NYC311API.CalendarTypes.DAYS_AHEAD], scrub=True
+        calendars=[CalendarType.DAYS_AHEAD], scrub=True
     )
 
 ```
@@ -231,7 +231,7 @@ Note that exceptions include things like holidays, snow days, half days, and win
 async with aiohttp.ClientSession() as session:
     calendar = NYC311API(session, API_KEY)
     resp = await calendar.get_calendar(
-        calendars=[NYC311API.CalendarTypes.NEXT_EXCEPTIONS], scrub=True
+        calendars=[CalendarType.NEXT_EXCEPTIONS], scrub=True
     )
 
 ```
@@ -289,7 +289,7 @@ async def main():
     async with aiohttp.ClientSession() as session:
         calendar = NYC311API(session, API_KEY)
         resp = await calendar.get_calendar(
-            calendars=[NYC311API.CalendarTypes.NEXT_EXCEPTIONS], scrub=True
+            calendars=[CalendarType.NEXT_EXCEPTIONS], scrub=True
         )
         pp.pprint(resp)
 
