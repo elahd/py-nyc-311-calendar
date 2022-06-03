@@ -65,53 +65,70 @@ Data for each calendar day is returned in a `CalendarDayEntry` dataclass.
 
 nyc311calendar can return data in several formats, each defined in the `CalendarType` enum:
 
-#### By Date
+#### Quarter Ahead
 
-The By Date calendar type returns all statuses for all services for 90 days starting on the day before the API request was made. The response dict is keyed by calendar date. This is essentially a constant-ized dump from the source API. The example below is truncated to save space, showing two of 90 days.
+The Quarter Ahead calendar type returns all statuses for all services for 90 days starting on the day before the API request was made. The response dict has two sub-dicts keyed by calendar date and service. This is essentially a constant-ized dump from the source API. The example below is truncated to save space, showing two of 90 days.
 
 ```python
 
 async with aiohttp.ClientSession() as session:
     calendar = NYC311API(session, API_KEY)
     resp = await calendar.get_calendar(
-        calendars=[CalendarType.BY_DATE], scrub=True
+        calendars=[CalendarType.QUARTER_AHEAD], scrub=True
     )
 
 ```
 
 ```python
 {
-    <CalendarType.BY_DATE: 1>: 
-        datetime.date(2021, 12, 31): {
-            <ServiceType.PARKING: "Alternate Side Parking">: CalendarDayEntry(...),
-            <ServiceType.SCHOOL: "Schools">: CalendarDayEntry(...),
-            <ServiceType.SANITATION: "Collections">: CalendarDayEntry(...)
+    <CalendarType.QUARTER_AHEAD: 1>: {
+        <GroupBy.DATE: "date">: {
+            datetime.date(2021, 12, 31): {
+                <ServiceType.PARKING: "Alternate Side Parking">: CalendarDayEntry(...),
+                <ServiceType.SCHOOL: "Schools">: CalendarDayEntry(...),
+                <ServiceType.SANITATION: "Collections">: CalendarDayEntry(...)
+            },
+            datetime.date(2022, 1, 1): {
+                <ServiceType.PARKING: "Alternate Side Parking">: CalendarDayEntry(...),
+                <ServiceType.SCHOOL: "Schools">: CalendarDayEntry(...),
+                <ServiceType.SANITATION: "Collections">: CalendarDayEntry(...)
+            }
         },
-        datetime.date(2022, 1, 1): {
-            <ServiceType.PARKING: "Alternate Side Parking">: CalendarDayEntry(...),
-            <ServiceType.SCHOOL: "Schools">: CalendarDayEntry(...),
-            <ServiceType.SANITATION: "Collections">: CalendarDayEntry(...)
+        <GroupBy.SERVICE: "service">: {
+            <ServiceType.PARKING: "Alternate Side Parking">: {
+                datetime.date(2021, 12, 31): CalendarDayEntry(...),
+                datetime.date(2022, 1, 1): CalendarDayEntry(...)
+            },
+            <ServiceType.SCHOOL: "Schools">: {
+                datetime.date(2021, 12, 31): CalendarDayEntry(...),
+                datetime.date(2022, 1, 1): CalendarDayEntry(...)
+            },
+            <ServiceType.SANITATION: "Collections">: {
+                datetime.date(2021, 12, 31): CalendarDayEntry(...),
+                datetime.date(2022, 1, 1): CalendarDayEntry(...)
+            }
         }
+    }
 }
 ```
 
-#### Days Ahead
+#### Week Ahead
 
-The Days Ahead calendar type returns all statuses for all services for 8 days starting on the day before the API request was made. The response dict is keyed by number of days relative to today. This is useful for showing a calendar of the week ahead (and yesterday, just in case you forgot to move your car). The example below is truncated to save space, showing three of 90 days.
+The Week Ahead calendar type returns all statuses for all services for 8 days starting on the day before the API request was made. The response dict is keyed by number of days relative to today. This is useful for showing a calendar of the week ahead (and yesterday, just in case you forgot to move your car). The example below is truncated to save space, showing three of 90 days.
 
 ```python
 
 async with aiohttp.ClientSession() as session:
     calendar = NYC311API(session, API_KEY)
     resp = await calendar.get_calendar(
-        calendars=[CalendarType.DAYS_AHEAD], scrub=True
+        calendars=[CalendarType.WEEK_AHEAD], scrub=True
     )
 
 ```
 
 ```python
 {
-    <CalendarTypes.DAYS_AHEAD: 2>: {
+    <CalendarTypes.WEEK_AHEAD: 2>: {
         -1: {
             'date': datetime.date(2021, 12, 23),
             'services': {
