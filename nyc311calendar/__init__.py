@@ -35,6 +35,13 @@ class CalendarType(Enum):
     NEXT_EXCEPTIONS = 3
 
 
+class GroupBy(Enum):
+    """Calendar views."""
+
+    DATE = "date"
+    SERVICE = "service"
+
+
 @dataclass
 class CalendarDayEntry:
     """Entry for each service within a day."""
@@ -95,10 +102,12 @@ class NYC311API:
             if calendar is CalendarType.BY_DATE:
                 resp_dict[CalendarType.BY_DATE] = api_resp
             elif calendar is CalendarType.DAYS_AHEAD:
-                resp_dict[CalendarType.DAYS_AHEAD] = self.__build_days_ahead(api_resp)
+                resp_dict[CalendarType.DAYS_AHEAD] = self.__build_days_ahead(
+                    api_resp[GroupBy.DATE]
+                )
             elif calendar is CalendarType.NEXT_EXCEPTIONS:
                 resp_dict[CalendarType.NEXT_EXCEPTIONS] = self.__build_next_exceptions(
-                    api_resp
+                    api_resp[GroupBy.DATE]
                 )
 
         log.info("Got calendar.")
@@ -120,13 +129,14 @@ class NYC311API:
 
         resp_json = await self.__call_api(base_url, date_params)
 
-        resp_dict = {}
+        grouped_by_date: dict = {}
+        grouped_by_service: dict = {}
+
         for day in resp_json["days"]:
             cur_date = datetime.strptime(
                 day["today_id"], self.API_RSP_DATE_FORMAT
             ).date()
 
-            day_dict = {}
             for item in day["items"]:
                 try:
                     # Get Raw
@@ -170,7 +180,7 @@ class NYC311API:
                     )
                     raise self.UnexpectedEntry from error
 
-                day_dict[service_type] = CalendarDayEntry(
+                calendar_entry = CalendarDayEntry(
                     service_profile=service_class.PROFILE,
                     status_profile=status_profile
                     if isinstance(status_profile, StatusTypeProfile)
@@ -182,9 +192,17 @@ class NYC311API:
                     date=cur_date,
                 )
 
-            resp_dict[cur_date] = day_dict
+                # Insert into by-date dict
+                grouped_by_date.setdefault(cur_date, {})
+                grouped_by_date[cur_date].update({service_type: calendar_entry})
+
+                # Insert into by-service dict
+                grouped_by_service.setdefault(service_type, {})
+                grouped_by_service[service_type].update({cur_date: calendar_entry})
 
         log.debug("Updated calendar.")
+
+        resp_dict = {GroupBy.DATE: grouped_by_date, GroupBy.SERVICE: grouped_by_service}
 
         return resp_dict
 
