@@ -21,7 +21,7 @@ from .util import date_mod
 from .util import remove_observed
 from .util import today
 
-__version__ = "v0.3"
+__version__ = "v0.4"
 
 
 log = logging.getLogger(__name__)
@@ -30,9 +30,16 @@ log = logging.getLogger(__name__)
 class CalendarType(Enum):
     """Calendar views."""
 
-    BY_DATE = 1
-    DAYS_AHEAD = 2
+    QUARTER_AHEAD = 1
+    WEEK_AHEAD = 2
     NEXT_EXCEPTIONS = 3
+
+
+class GroupBy(Enum):
+    """Calendar views."""
+
+    DATE = "date"
+    SERVICE = "service"
 
 
 @dataclass
@@ -43,6 +50,7 @@ class CalendarDayEntry:
     status_profile: StatusTypeProfile | None
     exception_reason: str
     raw_description: str
+    exception_summary: str | None
     date: date
 
 
@@ -80,8 +88,8 @@ class NYC311API:
 
         if not calendars:
             calendars = [
-                CalendarType.BY_DATE,
-                CalendarType.DAYS_AHEAD,
+                CalendarType.QUARTER_AHEAD,
+                CalendarType.WEEK_AHEAD,
                 CalendarType.NEXT_EXCEPTIONS,
             ]
 
@@ -92,13 +100,15 @@ class NYC311API:
         api_resp = await self.__async_calendar_update(start_date, end_date, scrub)
 
         for calendar in calendars:
-            if calendar is CalendarType.BY_DATE:
-                resp_dict[CalendarType.BY_DATE] = api_resp
-            elif calendar is CalendarType.DAYS_AHEAD:
-                resp_dict[CalendarType.DAYS_AHEAD] = self.__build_days_ahead(api_resp)
+            if calendar is CalendarType.QUARTER_AHEAD:
+                resp_dict[CalendarType.QUARTER_AHEAD] = api_resp
+            elif calendar is CalendarType.WEEK_AHEAD:
+                resp_dict[CalendarType.WEEK_AHEAD] = self.__build_days_ahead(
+                    api_resp[GroupBy.DATE]
+                )
             elif calendar is CalendarType.NEXT_EXCEPTIONS:
                 resp_dict[CalendarType.NEXT_EXCEPTIONS] = self.__build_next_exceptions(
-                    api_resp
+                    api_resp[GroupBy.DATE]
                 )
 
         log.info("Got calendar.")
@@ -120,13 +130,14 @@ class NYC311API:
 
         resp_json = await self.__call_api(base_url, date_params)
 
-        resp_dict = {}
+        grouped_by_date: dict = {}
+        grouped_by_service: dict = {}
+
         for day in resp_json["days"]:
             cur_date = datetime.strptime(
                 day["today_id"], self.API_RSP_DATE_FORMAT
             ).date()
 
-            day_dict = {}
             for item in day["items"]:
                 try:
                     # Get Raw
@@ -146,7 +157,23 @@ class NYC311API:
                     if service_type == ServiceType.SCHOOL:
                         service_class = School
                         status_type = School.StatusType(raw_status)
-                        status_profile = School.STATUS_MAP[status_type]
+
+                        # Hack to get last day of school to appear as an exception (Part 1/2). The API reports this as a normal open day.
+                        if (
+                            scrubbed_exception_reason
+                            and scrubbed_exception_reason.lower().find("last day") > -1
+                        ):
+                            status_profile = StatusTypeProfile(
+                                name="Last Day",
+                                standardized_type=Service.StandardizedStatusType.LAST_DAY,
+                                description=(
+                                    "School is open for the last day of the year."
+                                ),
+                                reported_type=School.StatusType.OPEN,
+                            )
+                            exception_summary = "Last Day of School"
+                        else:
+                            status_profile = School.STATUS_MAP[status_type]
 
                     elif service_type == ServiceType.PARKING:
                         service_class = Parking
@@ -170,7 +197,17 @@ class NYC311API:
                     )
                     raise self.UnexpectedEntry from error
 
-                day_dict[service_type] = CalendarDayEntry(
+                # Hack to get last day of school to appear as an exception (Part 2/2). The API reports this as a normal open day.
+                exception_summary = (
+                    "Last Day of School"
+                    if status_profile.standardized_type
+                    is Service.StandardizedStatusType.LAST_DAY
+                    else (
+                        f"{service_class.PROFILE.exception_title_name} {service_class.PROFILE.status_strings.get(status_profile.standardized_type, service_class.PROFILE.exception_name)} ({scrubbed_exception_reason})"
+                    )
+                )
+
+                calendar_entry = CalendarDayEntry(
                     service_profile=service_class.PROFILE,
                     status_profile=status_profile
                     if isinstance(status_profile, StatusTypeProfile)
@@ -179,12 +216,21 @@ class NYC311API:
                     if scrubbed_exception_reason is None
                     else scrubbed_exception_reason,
                     raw_description=raw_description,
+                    exception_summary=exception_summary,
                     date=cur_date,
                 )
 
-            resp_dict[cur_date] = day_dict
+                # Insert into by-date dict
+                grouped_by_date.setdefault(cur_date, {})
+                grouped_by_date[cur_date].update({service_type: calendar_entry})
+
+                # Insert into by-service dict
+                grouped_by_service.setdefault(service_type, {})
+                grouped_by_service[service_type].update({cur_date: calendar_entry})
 
         log.debug("Updated calendar.")
+
+        resp_dict = {GroupBy.DATE: grouped_by_date, GroupBy.SERVICE: grouped_by_service}
 
         return resp_dict
 

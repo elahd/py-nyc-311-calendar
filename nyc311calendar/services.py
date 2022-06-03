@@ -23,7 +23,9 @@ class ServiceTypeProfile:
 
     name: str  # Service name.
     exception_name: str  # Term for when this service is suspended.
+    exception_title_name: str
     service_type: ServiceType
+    status_strings: dict
 
 
 @dataclass
@@ -54,10 +56,25 @@ class Service(ABC):
         NORMAL_SUSPENDED = 2  # E.g.: School closed on weekends; no garbage on Sunday; no meters on Sunday.
         SUSPENDED = 3  # E.g.: Service change for holiday.
         DELAYED = 4  # E.g.: Snow delay.
-        PARTIAL = 5  # E.g.: School open for teachers only; compost canceled but trash/recycling still on.
+        PARTIAL = 5  # E.g.: School open for some students and not others; compost canceled but trash/recycling still on.
         UNSURE = 6  # E.g.: Service may or may not be normal.
         RECESS = 7  # Summer recess. (School Only)
+        STAFF_ONLY = 8  # E.g.: School open for teachers only. (School only)
+        LAST_DAY = 98  # School is open for the last day of the year. (School only)
         REMOTE = 99  # COVID-19 remote protocols in effect. (School Only)
+
+    STATUS_STRINGS = {
+        StandardizedStatusType.NORMAL_ACTIVE: "Open",
+        StandardizedStatusType.NORMAL_SUSPENDED: "Closed",
+        StandardizedStatusType.SUSPENDED: "Suspended",
+        StandardizedStatusType.DELAYED: "Delayed",
+        StandardizedStatusType.PARTIAL: "Partially Closed",
+        StandardizedStatusType.UNSURE: "TBD",
+        StandardizedStatusType.RECESS: "in Recess",
+        StandardizedStatusType.REMOTE: "Remote Learning",
+        StandardizedStatusType.STAFF_ONLY: "Closed for Students",
+        StandardizedStatusType.LAST_DAY: "Last Day",
+    }
 
 
 class School(Service):
@@ -77,15 +94,23 @@ class School(Service):
         STAFF_ONLY = "STAFF ONLY"
         TENTATIVE = "TENTATIVE"
 
+    STATUS_STRINGS = Service.STATUS_STRINGS | {
+        Service.StandardizedStatusType.SUSPENDED: "Closed"
+    }
+
     PROFILE = ServiceTypeProfile(
-        name="School", exception_name="Closure", service_type=ServiceType.SCHOOL
+        name="School",
+        exception_name="Closure",
+        exception_title_name="Schools",
+        service_type=ServiceType.SCHOOL,
+        status_strings=STATUS_STRINGS,
     )
 
     STATUS_MAP: dict = {
         StatusType.CLOSED: StatusTypeProfile(
             name="Closed",
-            standardized_type=Service.StandardizedStatusType.RECESS,
-            description="School is closed for the summer.",
+            standardized_type=Service.StandardizedStatusType.SUSPENDED,
+            description="School is closed for a holiday or special event.",
             reported_type=StatusType.CLOSED,
         ),
         StatusType.NO_INFO: StatusTypeProfile(
@@ -97,7 +122,7 @@ class School(Service):
         StatusType.NOT_IN_SESSION: StatusTypeProfile(
             name="Not In Session",
             standardized_type=Service.StandardizedStatusType.NORMAL_SUSPENDED,
-            description="Schools are closed.",
+            description="Schools are closed for the weekend or for an extended break.",
             reported_type=StatusType.NOT_IN_SESSION,
         ),
         StatusType.OPEN: StatusTypeProfile(
@@ -152,7 +177,9 @@ class Sanitation(Service):
     PROFILE = ServiceTypeProfile(
         name="Sanitation",
         exception_name="Collection Suspension",
+        exception_title_name="Sanitation Collection",
         service_type=ServiceType.SANITATION,
+        status_strings=Service.STATUS_STRINGS,
     )
 
     STATUS_MAP: dict = {
@@ -228,7 +255,9 @@ class Parking(Service):
     PROFILE = ServiceTypeProfile(
         name="Parking",
         exception_name="Rule Suspension",
+        exception_title_name="Parking Rules",
         service_type=ServiceType.PARKING,
+        status_strings=Service.STATUS_STRINGS,
     )
 
     STATUS_MAP = {
