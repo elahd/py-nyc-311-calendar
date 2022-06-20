@@ -1,4 +1,5 @@
 [![Downloads](https://pepy.tech/badge/nyc311calendar)](https://pepy.tech/project/nyc311calendar)
+[![PyPI version](https://badge.fury.io/py/nyc311calendar.svg)](https://badge.fury.io/py/nyc311calendar)
 
 # nyc311calendar
 
