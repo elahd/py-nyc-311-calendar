@@ -1,11 +1,19 @@
-[![Downloads](https://pepy.tech/badge/nyc311calendar)](https://pepy.tech/project/nyc311calendar)
-[![PyPI version](https://badge.fury.io/py/nyc311calendar.svg)](https://badge.fury.io/py/nyc311calendar)
+<p align="center"><img width="100px" src="https://user-images.githubusercontent.com/466460/175758044-7eb8276a-cfc0-4e65-b96f-5629bafd6f7a.png" /></p>
+<h1 align="center">nyc311calendar</h1>
+<h3 align="center">Python library for asynchronously fetching data for NYC school closures, trash collection holidays, and alternate side parking suspensions.</h3>
+<br />
+<p align="center">
+  <a href="https://www.codacy.com/gh/elahd/nyc311calendar/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=elahd/nyc311calendar&amp;utm_campaign=Badge_Grade"><img src="https://app.codacy.com/project/badge/Grade/7ee50ada748f4827a195d14143b9610e"/></a>
+  <a href="https://results.pre-commit.ci/latest/github/elahd/nyc311calendar/main"><img src="https://results.pre-commit.ci/badge/github/elahd/nyc311calendar/main.svg" /></a>
+  <a href="https://pepy.tech/project/nyc311calendar"><img src="https://pepy.tech/badge/nyc311calendar" /></a></a>
+  <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" /></a>
+  <a href="https://github.com/PyCQA/pylint"><img src="https://img.shields.io/badge/linting-pylint-yellowgreen" /></a>
+  <a href="https://github.com/elahd/nyc311calendar/blob/main/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/elahd/nyc311calendar"></a>
+  <a href="https://badge.fury.io/py/nyc311calendar"><img src="https://badge.fury.io/py/nyc311calendar.svg" /></a>
+  <a href="https://www.buymeacoffee.com/elahd"><img src="https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg"></a>
+</p>
 
-# nyc311calendar
-
-## Asynchronous data fetcher for NYC school closures, trash collection holidays, and alternate side parking suspensions.
-
-Uses the [NYC 311 Public API](https://api-portal.nyc.gov/docs/services/nyc-311-public-api/operations/api-GetCalendar-get/console). Built to drive the Home Assistant [NYC 311 Public Services Calendar](https://github.com/elahd/ha-nyc311) add-in.
+<p align="center">Uses the <a href="https://api-portal.nyc.gov/docs/services/nyc-311-public-api/operations/api-GetCalendar-get/console">NYC 311 Public API</a>. Built to drive the Home Assistant <a href="https://github.com/elahd/ha-nyc311">NYC 311 Public Services Calendar</a> add-in.
 
 ## Warning
 
