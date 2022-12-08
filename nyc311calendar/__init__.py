@@ -21,7 +21,7 @@ from .util import date_mod
 from .util import remove_observed
 from .util import today
 
-__version__ = "v0.4"
+__version__ = "v0.4.1"
 
 
 log = logging.getLogger(__name__)
