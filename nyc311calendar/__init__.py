@@ -2,24 +2,23 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
-from datetime import datetime
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 from enum import Enum
 import logging
 
 import aiohttp
-from nyc311calendar.services import Parking
-from nyc311calendar.services import Sanitation
-from nyc311calendar.services import School
-from nyc311calendar.services import Service
-from nyc311calendar.services import ServiceType
-from nyc311calendar.services import ServiceTypeProfile
-from nyc311calendar.services import StatusTypeProfile
 
-from .util import date_mod
-from .util import remove_observed
-from .util import today
+from nyc311calendar.services import (
+    Parking,
+    Sanitation,
+    School,
+    Service,
+    ServiceType,
+    ServiceTypeProfile,
+    StatusTypeProfile,
+)
+
+from .util import date_mod, remove_observed, today
 
 __version__ = "v0.4.1"
 
@@ -144,9 +143,12 @@ class NYC311API:
                     raw_service_name = item["type"]
                     raw_status = item["status"]
                     raw_description = item.get("details")
+
+                    exception_name = item.get("exceptionName")
+
                     scrubbed_exception_reason = (
-                        lambda x: remove_observed(x) if scrub else x
-                    )(item.get("exceptionName"))
+                        remove_observed(exception_name) if scrub else exception_name
+                    )
 
                     # Process
                     service_type = ServiceType(raw_service_name)
@@ -260,7 +262,6 @@ class NYC311API:
 
         # Iterate through 8 days, starting with yesterday and ending a week from today.
         for date_delta in list(range(-1, 7)):
-
             # Generate date from delta
             i_date = date_mod(date_delta)
 
@@ -301,7 +302,6 @@ class NYC311API:
         next_exceptions: dict = {}
 
         for date_, services in sorted(resp_dict.items()):
-
             # We don't want to show yesterday's calendar event as a next exception. Skip over if date is yesterday.
             if date_ == (today() - timedelta(days=1)):
                 continue
@@ -310,7 +310,6 @@ class NYC311API:
             service_entry: CalendarDayEntry
 
             for service_type, service_entry in services.items():
-
                 # Skip if we already logged an exception for this category or if the status is not exceptional.
                 if next_exceptions.get(service_type) or (
                     service_entry.status_profile

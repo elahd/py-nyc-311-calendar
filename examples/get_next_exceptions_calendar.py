@@ -5,8 +5,8 @@ from __future__ import annotations
 import asyncio
 
 import aiohttp
-from nyc311calendar import CalendarType
-from nyc311calendar import NYC311API
+
+from nyc311calendar import NYC311API, CalendarType
 
 API_KEY = "YOUR_API_KEY"
 
