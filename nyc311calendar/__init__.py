@@ -211,12 +211,16 @@ class NYC311API:
 
                 calendar_entry = CalendarDayEntry(
                     service_profile=service_class.PROFILE,
-                    status_profile=status_profile
-                    if isinstance(status_profile, StatusTypeProfile)
-                    else None,
-                    exception_reason=""
-                    if scrubbed_exception_reason is None
-                    else scrubbed_exception_reason,
+                    status_profile=(
+                        status_profile
+                        if isinstance(status_profile, StatusTypeProfile)
+                        else None
+                    ),
+                    exception_reason=(
+                        ""
+                        if scrubbed_exception_reason is None
+                        else scrubbed_exception_reason
+                    ),
                     raw_description=raw_description,
                     exception_summary=exception_summary,
                     date=cur_date,
