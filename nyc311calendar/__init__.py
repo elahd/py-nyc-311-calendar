@@ -332,6 +332,7 @@ class NYC311API:
         return next_exceptions
 
     async def __call_api(self, base_url: str, url_params: dict) -> dict:
+        """Make call to API using provided URL and parameters."""
         try:
             async with self._session.get(
                 base_url,
