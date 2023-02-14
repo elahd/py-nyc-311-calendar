@@ -84,7 +84,6 @@ class NYC311API:
         Returns:
             dict: Dictionary of calendars.
         """
-
         if not calendars:
             calendars = [
                 CalendarType.QUARTER_AHEAD,
@@ -120,7 +119,6 @@ class NYC311API:
         self, start_date: date, end_date: date, scrub: bool = False
     ) -> dict:
         """Get events for specified date range."""
-
         date_params = {
             "fromdate": start_date.strftime(self.API_REQ_DATE_FORMAT),
             "todate": end_date.strftime(self.API_REQ_DATE_FORMAT),
@@ -243,7 +241,6 @@ class NYC311API:
     @classmethod
     def __build_days_ahead(cls, resp_dict: dict) -> dict:
         """Build dict of statuses keyed by number of days from today."""
-
         # Dictionary Format
         # {
         #     "-1": {
@@ -261,7 +258,6 @@ class NYC311API:
         #         }
         #     }
         # }
-
         days_ahead_calendar = {}
 
         # Iterate through 8 days, starting with yesterday and ending a week from today.
@@ -287,7 +283,6 @@ class NYC311API:
     @classmethod
     def __build_next_exceptions(cls, resp_dict: dict) -> dict:
         """Build dict of next exception for all known types."""
-
         # Dictionary Format
         # {
         #   "2022-05-19": {
@@ -302,7 +297,6 @@ class NYC311API:
         #       }
         #   }
         # }
-
         next_exceptions: dict = {}
 
         for date_, services in sorted(resp_dict.items()):
