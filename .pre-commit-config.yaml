@@ -1,4 +1,6 @@
-# https://pypi.org/project/python-typing-update/ was causing trouble. Some of the below items seek to re-implement the typing-update flow.
+# File Version: 2023.01.31
+
+# https://pypi.org/project/python-typing-update/ doesn't work with python 3.10. Some of the below items seek to re-implement the typing-update flow.
 
 ci:
   skip: [pylint]
@@ -17,7 +19,7 @@ repos:
     rev: v2.0.1
     hooks:
       - id: autoflake
-        files: ^((nyc311calendar)/.+)?[^/]+\.py$
+        files: ^((custom_components)/.+)?[^/]+\.py$
   - repo: https://github.com/psf/black
     rev: 23.1.0
     hooks:
@@ -25,7 +27,7 @@ repos:
         args:
           - --safe
           - --quiet
-        files: ^((nyc311calendar)/.+)?[^/]+\.py$
+        files: ^((custom_components)/.+)?[^/]+\.py$
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.2
     hooks:
@@ -43,7 +45,7 @@ repos:
           - flake8-docstrings==1.5.0
           - pydocstyle==5.1.1
           - Flake8-pyproject==1.2.2
-        files: ^((nyc311calendar)/.+)?[^/]+\.py$
+        files: ^((custom_components)/.+)?[^/]+\.py$
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.4
     hooks:
@@ -52,7 +54,7 @@ repos:
           - --quiet
           - --format=custom
           - --exclude=examples
-        files: ^((nyc311calendar)/.+)?[^/]+\.py$
+        files: ^((custom_components)/.+)?[^/]+\.py$
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
@@ -84,7 +86,7 @@ repos:
         entry: pylint
         language: system
         types: [python]
-        exclude: (.vscode|.devcontainer|.mypy_cache|custom_components/.*/__pycache__|pylint)
+        exclude: (.vscode|.devcontainer|.mypy_cache)
         args:
           - --output-format=colorized
           - -d W0511
